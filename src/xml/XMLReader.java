@@ -1,7 +1,7 @@
 package xml;
 
-import domein.Bestelling;
-import domein.Klant;
+import kta02.domein.Bestelling;
+import kta02.domein.Klant;
 import java.io.File;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;

@@ -1,6 +1,6 @@
 package gui;
 
-public class main
+public class GUIMain
 {
 
     /**

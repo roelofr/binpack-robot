@@ -1,4 +1,4 @@
-package domein;
+package kta02.domein;
 
 public class Klant
 {
