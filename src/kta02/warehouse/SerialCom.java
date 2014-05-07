@@ -18,13 +18,13 @@ public class SerialCom implements SerialPortEventListener
 
     SerialPort serialPort;
     /**
-     * The port we're normally going to use.
+     * All available ports
      */
     private static final String PORT_NAMES[] =
     {
         "COM1",
         "COM2",
-        "COM3", // Windows
+        "COM3",
         "COM4",
         "COM5",
         "COM6"
