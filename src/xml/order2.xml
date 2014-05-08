@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bestelling>
-	<ordernummer>2383</ordernummer>
-	<klant>
-		<voornaam>Jaap</voornaam>
-		<achternaam>van Berg</achternaam>
-		<adres>Daverberg 2</adres>
-		<postcode>1032GZ</postcode>
-		<plaats>Den Haag</plaats>
-	</klant>
-	<datum>2014-03-23</datum>
-	<artikelnr>10</artikelnr>
-	<artikelnr>8</artikelnr>
-	<artikelnr>2</artikelnr>
-	<artikelnr>5</artikelnr>    
+    <ordernummer>2383</ordernummer>
+    <klant>
+        <voornaam>Jaap</voornaam>
+        <achternaam>van Berg</achternaam>
+        <adres>Daverberg 2</adres>
+        <postcode>1032GZ</postcode>
+        <plaats>Den Haag</plaats>
+    </klant>
+    <datum>2014-03-23</datum>
+    <artikelnr>10</artikelnr>
+    <artikelnr>13</artikelnr>
+    <artikelnr>2</artikelnr>
+    <artikelnr>18</artikelnr>
+
 </bestelling>
