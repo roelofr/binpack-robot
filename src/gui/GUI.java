@@ -1,13 +1,17 @@
 package gui;
 
+import database.DatabaseProcessor;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import kta02.domein.Bestelling;
+import kta02.domein.PackageLocation;
 import xml.XMLReader;
 
 public class GUI extends JFrame implements ActionListener
@@ -61,6 +65,19 @@ public class GUI extends JFrame implements ActionListener
 
                 // debug
                 bestelling.print();
+
+                DatabaseProcessor dbProcessor = new DatabaseProcessor(bestelling);
+
+                try
+                {
+                    ArrayList<PackageLocation> cake = dbProcessor.processArticles();
+                    System.out.println(cake);
+                }
+                catch (SQLException ex)
+                {
+                    System.err.println(ex.getMessage());
+                }
+
             }
             else if (ae.getActionCommand() == JFileChooser.CANCEL_SELECTION)
             {
