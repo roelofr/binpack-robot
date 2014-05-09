@@ -22,56 +22,56 @@ import java.util.TooManyListenersException;
  *
  * @author Roelof
  */
-public class ArduinoConnection implements SerialPortEventListener
+public class ArduinoConnection implements SerialPortEventListener, Runnable
 {
 
     // Action definitions
     /**
      * Verification action, to be used by SerialCom only
      */
-    public static final String ACTION_VERIFY = "A";
+    public static final String ACTION_VERIFY = "i";
     /**
      * Identification action, to be used by SerialCom only
      */
-    public static final String ACTION_WHOIS = "B";
+    public static final String ACTION_WHOIS = "i";
     /**
      * Action sent to motor 1
      */
-    public static final String ACTION_MOTOR1 = "D";
+    public static final String ACTION_MOTOR1 = "j";
     /**
      * Action sent to motor 2
      */
-    public static final String ACTION_MOTOR2 = "E";
+    public static final String ACTION_MOTOR2 = "k";
 
     // Action parameters
     /**
      * Motor, move backwards at speed 3
      */
-    public static final String PARAM_MOTOR_BW3 = "R3";
+    public static final String PARAM_MOTOR_BW3 = "1";
     /**
      * Motor, move backwards at speed 2
      */
-    public static final String PARAM_MOTOR_BW2 = "R2";
+    public static final String PARAM_MOTOR_BW2 = "2";
     /**
      * Motor, move backwards at speed 1
      */
-    public static final String PARAM_MOTOR_BW1 = "R1";
+    public static final String PARAM_MOTOR_BW1 = "3";
     /**
      * Motor, stop
      */
-    public static final String PARAM_MOTOR_STOP = "S";
+    public static final String PARAM_MOTOR_STOP = "4";
     /**
      * Motor, move forward at speed 3
      */
-    public static final String PARAM_MOTOR_FW3 = "F3";
+    public static final String PARAM_MOTOR_FW3 = "7";
     /**
      * Motor, move forward at speed 2
      */
-    public static final String PARAM_MOTOR_FW2 = "F2";
+    public static final String PARAM_MOTOR_FW2 = "6";
     /**
      * Motor, move forward at speed 1
      */
-    public static final String PARAM_MOTOR_FW1 = "F1";
+    public static final String PARAM_MOTOR_FW1 = "5";
 
     /**
      * Milliseconds to block while waiting for port open
@@ -85,6 +85,26 @@ public class ArduinoConnection implements SerialPortEventListener
      * Application name, used for connection identification
      */
     private static final String APP_NAME = "KTA02 Warehouse App";
+
+    /**
+     * Indicates that this is a motor/motor Arduino (x/y movement)
+     */
+    public static final char TYPE_MOTOR = 'a';
+
+    /**
+     * Indicates that this is a motor/bin Arduino (z/bin movement)
+     */
+    public static final char TYPE_BIN = 'b';
+
+    /**
+     * Indicates that the type of this Arduino isn't known just yet.
+     */
+    public static final char TYPE_LOADING = 'l';
+
+    /**
+     * Indicates that this Arduino's type could not be determined.
+     */
+    public static final char TYPE_NONE = 'x';
 
     /**
      * Serial Port connection
@@ -111,6 +131,13 @@ public class ArduinoConnection implements SerialPortEventListener
     private String lastData;
 
     /**
+     * Arduino type
+     */
+    private char arduinoType;
+
+    private Thread arduinoTypeThread;
+
+    /**
      * Indicates if the port is closed, all commands will fail if this happens.
      */
     private Boolean portClosed;
@@ -120,6 +147,7 @@ public class ArduinoConnection implements SerialPortEventListener
         lastRead = 0;
         lastData = "";
         portClosed = false;
+        arduinoType = ArduinoConnection.TYPE_NONE;
         try
         {
             // open serial port, and use class name for the appName.
@@ -139,6 +167,12 @@ public class ArduinoConnection implements SerialPortEventListener
             // add event listeners
             serialPort.addEventListener(this);
             serialPort.notifyOnDataAvailable(true);
+
+            arduinoType = ArduinoConnection.TYPE_LOADING;
+
+            arduinoTypeThread = new Thread(this);
+            arduinoTypeThread.start();
+
         } catch (PortInUseException | UnsupportedCommOperationException | IOException | TooManyListenersException e)
         {
             if (e.getClass().getName() == "PortInUseException")
@@ -160,9 +194,14 @@ public class ArduinoConnection implements SerialPortEventListener
         }
     }
 
+    public char getType()
+    {
+        return arduinoType;
+    }
+
     /**
-     * Performs the action in <code>action</code> using <code>parameter</code> as
-     * parameter.
+     * Performs the action in <code>action</code> using <code>parameter</code>
+     * as parameter.
      *
      * @param action An action, see the ACTION_ constants for this
      * @param parameter A parameter, see the PARAM_ constants for this
@@ -233,6 +272,7 @@ public class ArduinoConnection implements SerialPortEventListener
         {
             serialPort.removeEventListener();
             serialPort.close();
+            portClosed = true;
         }
     }
 
@@ -302,6 +342,53 @@ public class ArduinoConnection implements SerialPortEventListener
         }
         return true;
 
+    }
+
+    @Override
+    public void run()
+    {
+
+        final int TYPESTATE_NONE = 0;
+        final int TYPESTATE_SENT = 0;
+
+        final long MAX_DELAY = 4 * 1000;
+
+        arduinoType = TYPE_LOADING;
+
+        boolean isSent = false;
+        long sentTime = new Date().getTime();
+
+        while (!Thread.currentThread().isInterrupted())
+        {
+            if (!isSent)
+            {
+                this.write("i".getBytes());
+                isSent = true;
+                sentTime = new Date().getTime();
+            } else
+            {
+                String tempLast = getLastData();
+                if (tempLast.charAt(0) == 'i')
+                {
+                    arduinoType = tempLast.charAt(1);
+                    break;
+                } else if (sentTime < new Date().getTime() - MAX_DELAY)
+                {
+                    break;
+                }
+            }
+            try
+            {
+                wait(100);
+            } catch (InterruptedException e)
+            {
+                break;
+            }
+        }
+        if (arduinoType == TYPE_LOADING)
+        {
+            arduinoType = TYPE_NONE;
+        }
     }
 
 }
