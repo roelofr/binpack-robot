@@ -64,8 +64,7 @@ public class GUI extends JFrame implements ActionListener
                 Bestelling bestelling = reader.readFromXml();
 
                 // debug
-                bestelling.print();
-
+                //bestelling.print();
                 DatabaseProcessor dbProcessor = new DatabaseProcessor(bestelling);
 
                 try

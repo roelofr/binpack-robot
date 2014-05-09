@@ -1,10 +1,10 @@
 package xml;
 
-import kta02.domein.Bestelling;
-import kta02.domein.Klant;
 import java.io.File;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import kta02.domein.Bestelling;
+import kta02.domein.Klant;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

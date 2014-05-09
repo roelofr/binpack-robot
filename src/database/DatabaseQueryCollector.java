@@ -57,4 +57,22 @@ public class DatabaseQueryCollector
         return rs;
 
     }
+
+    public ResultSet getDescription(int artikel) throws SQLException
+    {
+        ResultSet rs;
+        Statement statement;
+
+        try
+        {
+            statement = dbConn.createStatement();
+            rs = statement.executeQuery("SELECT size FROM Cell WHERE id = ( SELECT `description` FROM `Artikel` WHERE `artikel_id` = '" + artikel + "' )");
+
+        }
+        catch (SQLException e)
+        {
+            throw e;
+        }
+        return rs;
+    }
 }
