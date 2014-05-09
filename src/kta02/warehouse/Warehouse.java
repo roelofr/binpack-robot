@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import kta02.comm.ArduinoConnection;
 import kta02.comm.InsufficientDevicesException;
 import kta02.comm.SerialCommunicator;
+import kta02.dev.TestWindow;
 
 /**
  *
@@ -43,10 +44,7 @@ public class Warehouse
 
         System.out.println("Connected to " + arduinos.size() + " Arduino('s).");
 
-        for (ArduinoConnection arduino : arduinos)
-        {
-            arduino.close();
-        }
+        new TestWindow(arduinos);
 
     }
 
