@@ -24,7 +24,7 @@ import kta02.comm.ArduinoConnection;
  *
  * @author Roelof
  */
-public class TestWindow implements ActionListener
+public class TestWindow implements ActionListener, Runnable
 {
 
     private final static Dimension fillerDimension = new Dimension(64, 64);
@@ -34,6 +34,8 @@ public class TestWindow implements ActionListener
     JTable table;
 
     ArrayList<ArduinoConnection> arduinos;
+
+    private Thread updateThread;
 
     public TestWindow(ArrayList<ArduinoConnection> arduinos)
     {
@@ -61,31 +63,8 @@ public class TestWindow implements ActionListener
 
         exitButton.addActionListener(this);
 
-        int index = 0;
-        String type;
-        for (ArduinoConnection ar : arduinos)
-        {
-            if (ar.getType() == ArduinoConnection.TYPE_NONE)
-            {
-                type = "Unknown";
-            } else if (ar.getType() == ArduinoConnection.TYPE_LOADING)
-            {
-                type = "Loading...";
-            } else if (ar.getType() == ArduinoConnection.TYPE_MOTOR)
-            {
-                type = "Motor X-Y";
-            } else if (ar.getType() == ArduinoConnection.TYPE_BIN)
-            {
-                type = "Motor Z/bin";
-            } else
-            {
-                type = "Unknown";
-            }
-
-            table.setValueAt(index, index, 0);
-            table.setValueAt(type, index, 1);
-
-        }
+        updateThread = new Thread(this);
+        updateThread.run();
 
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     }
@@ -101,6 +80,46 @@ public class TestWindow implements ActionListener
                 ar.close();
             }
             System.exit(0);
+        }
+    }
+
+    public void run()
+    {
+        while (!Thread.currentThread().isInterrupted())
+        {
+            int index = 0;
+            String type;
+            for (ArduinoConnection ar : arduinos)
+            {
+                if (ar.getType() == ArduinoConnection.TYPE_NONE)
+                {
+                    type = "Unknown";
+                } else if (ar.getType() == ArduinoConnection.TYPE_LOADING)
+                {
+                    type = "Loading...";
+                } else if (ar.getType() == ArduinoConnection.TYPE_MOTOR)
+                {
+                    type = "Motor X-Y";
+                } else if (ar.getType() == ArduinoConnection.TYPE_BIN)
+                {
+                    type = "Motor Z/bin";
+                } else
+                {
+                    type = "Unknown";
+                }
+
+                table.setValueAt(index, index, 0);
+                table.setValueAt(type, index, 1);
+
+            }
+
+            try
+            {
+                wait(100);
+            } catch (InterruptedException ex)
+            {
+                System.err.printf("Updater thread interrupted! %s", ex.getMessage());
+            }
         }
     }
 
