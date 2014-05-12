@@ -6,8 +6,11 @@
 package kta02.comm;
 
 import gnu.io.CommPortIdentifier;
+import gnu.io.PortInUseException;
+import gnu.io.UnsupportedCommOperationException;
 import java.io.IOException;
 import java.util.Date;
+import java.util.TooManyListenersException;
 
 /**
  *
@@ -90,27 +93,65 @@ public class ArduinoConnection extends ArduinoBackend implements Runnable
     public static final char TYPE_OFFLINE = 'w';
 
     /**
+     * Indicates that this Arduino isn't ready yet
+     */
+    public static final char TYPE_IN_USE = '\r';
+
+    /**
      * Arduino type
      */
     private char arduinoType;
 
-    private String arduinoName;
-
     public ArduinoConnection(CommPortIdentifier portNumber) throws IOException
     {
         super(portNumber);
-        this.arduinoType = ArduinoConnection.TYPE_NONE;
-        this.arduinoName = "n/a";
+        arduinoType = TYPE_NONE;
+
+        if (setupConnection())
+        {
+
+            Thread thread = new Thread(this);
+            thread.start();
+        }
+    }
+
+    private Boolean setupConnection()
+    {
+        try
+        {
+            connectToArduino();
+            return true;
+        } catch (PortInUseException | UnsupportedCommOperationException | IOException | TooManyListenersException e)
+        {
+            String simpleName = e.getClass().getSimpleName();
+            char errorClass = TYPE_NONE;
+            if (simpleName.equals("PortInUseException"))
+            {
+                errorClass = TYPE_IN_USE;
+            } else if (simpleName.equals("TooManyListenersException"))
+            {
+                System.err.println("Port " + portIdentifier.getName() + " has too many device listeners! Details: " + e.getLocalizedMessage());
+            } else if (simpleName.equals("IOException"))
+            {
+                System.err.println("Port " + portIdentifier.getName() + " reported an Input/Output error! Details: " + e.getLocalizedMessage());
+                return false;
+            } else if (simpleName.equals("UnsupportedCommOperationException"))
+            {
+                System.err.println("Attempt to use unsupported operation on port " + portIdentifier.getName() + "! Details: " + e.getLocalizedMessage());
+            } else
+            {
+                System.err.println(e.toString());
+                return false;
+            }
+
+            arduinoType = errorClass;
+        }
+        return false;
     }
 
     public char getType()
     {
         return arduinoType;
-    }
-
-    public String getName()
-    {
-        return arduinoName;
     }
 
     /**
@@ -175,6 +216,11 @@ public class ArduinoConnection extends ArduinoBackend implements Runnable
         {
             throw e;
         }
+    }
+
+    public String getCurrentCOMOwner()
+    {
+        return portIdentifier.getCurrentOwner();
     }
 
     @Override

@@ -38,6 +38,7 @@ public class ArduinoBackend implements SerialPortEventListener
      */
     SerialPort serialPort;
 
+    CommPortIdentifier portIdentifier;
     /**
      * The input stream
      */
@@ -77,50 +78,30 @@ public class ArduinoBackend implements SerialPortEventListener
         arduinoAvailable = false;
 
         comPort = portNumber.getName();
+        portIdentifier = portNumber;
 
-        if (portNumber.isCurrentlyOwned())
-        {
-            throw new IOException("Comport " + comPort + " is currently owned by " + portNumber.getCurrentOwner());
-        }
-        try
-        {
-            // open serial port, and use class name for the appName.
-            serialPort = (SerialPort) portNumber.open("KTA02 Storage Manager",
-                    TIME_OUT);
+    }
 
-            // set port parameters
-            serialPort.setSerialPortParams(DATA_RATE,
-                    SerialPort.DATABITS_8,
-                    SerialPort.STOPBITS_1,
-                    SerialPort.PARITY_NONE);
+    protected void connectToArduino() throws IOException, PortInUseException, UnsupportedCommOperationException, TooManyListenersException
+    {
+        // open serial port, and use class name for the appName.
+        serialPort = (SerialPort) portIdentifier.open("KTA02 Storage Manager",
+                TIME_OUT);
 
-            // open the streams
-            input = serialPort.getInputStream();
-            output = serialPort.getOutputStream();
+        // set port parameters
+        serialPort.setSerialPortParams(DATA_RATE,
+                SerialPort.DATABITS_8,
+                SerialPort.STOPBITS_1,
+                SerialPort.PARITY_NONE);
 
-            // add event listeners
-            serialPort.addEventListener(this);
-            serialPort.notifyOnDataAvailable(true);
+        // open the streams
+        input = serialPort.getInputStream();
+        output = serialPort.getOutputStream();
 
-        } catch (PortInUseException | UnsupportedCommOperationException | IOException | TooManyListenersException e)
-        {
-            if (e.getClass().getName() == "PortInUseException")
-            {
-                System.err.println("Port in use on " + portNumber.getName() + "! Details: " + e.getLocalizedMessage());
-            } else if (e.getClass().getName() == "TooManyListenersException")
-            {
-                System.err.println("Port " + portNumber.getName() + " has too many device listeners! Details: " + e.getLocalizedMessage());
-            } else if (e.getClass().getName() == "IOException")
-            {
-                System.err.println("Port " + portNumber.getName() + " reported an Input/Output error! Details: " + e.getLocalizedMessage());
-            } else if (e.getClass().getName() == "UnsupportedCommOperationException")
-            {
-                System.err.println("Attempt to use unsupported operation on port " + portNumber.getName() + "! Details: " + e.getLocalizedMessage());
-            } else
-            {
-                System.err.println(e.toString());
-            }
-        }
+        // add event listeners
+        serialPort.addEventListener(this);
+        serialPort.notifyOnDataAvailable(true);
+
     }
 
     /**
@@ -139,7 +120,7 @@ public class ArduinoBackend implements SerialPortEventListener
      *
      * @return
      */
-    protected String getComPort()
+    public String getComPort()
     {
         return comPort;
     }
@@ -183,7 +164,7 @@ public class ArduinoBackend implements SerialPortEventListener
      */
     public int getMotor2Velocity()
     {
-        return motorSpeeds[0];
+        return motorSpeeds[1];
     }
 
     /**
@@ -195,7 +176,7 @@ public class ArduinoBackend implements SerialPortEventListener
         {
             serialPort.removeEventListener();
             serialPort.close();
-            arduinoAvailable = true;
+            arduinoAvailable = false;
         }
     }
 

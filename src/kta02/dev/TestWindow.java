@@ -69,7 +69,7 @@ public class TestWindow extends JFrame implements ActionListener, FocusListener,
         label.setMinimumSize(new Dimension(16, 32));
         panel.add(label, BorderLayout.NORTH);
 
-        table = new JTable(20, 3);
+        table = new JTable(20, 5);
         table.setColumnSelectionAllowed(false);
         table.addFocusListener(this);
         panel.add(table, BorderLayout.CENTER);
@@ -77,6 +77,8 @@ public class TestWindow extends JFrame implements ActionListener, FocusListener,
         table.setValueAt("ID", 0, 0);
         table.setValueAt("Port", 0, 1);
         table.setValueAt("Type", 0, 2);
+        table.setValueAt("Motor 1", 0, 3);
+        table.setValueAt("Motor 2", 0, 4);
 
         table.setIntercellSpacing(new Dimension(2, 2));
 
@@ -173,16 +175,18 @@ public class TestWindow extends JFrame implements ActionListener, FocusListener,
         {
             if (arduinos != null && !arduinos.isEmpty())
             {
+
+                int speedM1;
+                int speedM2;
+
                 label.setText("Connected to " + arduinos.size() + " arduino(s).");
 
                 int index = 0;
                 String type;
                 for (ArduinoConnection ar : arduinos)
                 {
-                    if (ar.getType() == ArduinoConnection.TYPE_NONE)
-                    {
-                        type = "Unknown";
-                    } else if (ar.getType() == ArduinoConnection.TYPE_LOADING)
+                    speedM1 = speedM2 = -4;
+                    if (ar.getType() == ArduinoConnection.TYPE_LOADING)
                     {
                         type = "Loading...";
                     } else if (ar.getType() == ArduinoConnection.TYPE_MOTOR)
@@ -193,7 +197,10 @@ public class TestWindow extends JFrame implements ActionListener, FocusListener,
                         type = "Motor Z/bin";
                     } else if (ar.getType() == ArduinoConnection.TYPE_OFFLINE)
                     {
-                        type = "Waiting...";
+                        type = "Connecting...";
+                    } else if (ar.getType() == ArduinoConnection.TYPE_IN_USE)
+                    {
+                        type = "Device in use";
                     } else
                     {
                         type = "Unknown";
@@ -202,14 +209,27 @@ public class TestWindow extends JFrame implements ActionListener, FocusListener,
                     if (ar.getType() == ArduinoConnection.TYPE_MOTOR || ar.getType() == ArduinoConnection.TYPE_BIN)
                     {
                         availableConn = ar;
+                        speedM1 = ar.getMotor1Velocity();
+                        speedM2 = ar.getMotor2Velocity();
                     } else if (availableConn == ar)
                     {
                         availableConn = null;
                     }
 
                     table.setValueAt(index, index + 1, 0);
-                    table.setValueAt(ar.getName(), index + 1, 1);
+                    table.setValueAt(ar.getComPort(), index + 1, 1);
                     table.setValueAt(type, index + 1, 2);
+
+                    if (speedM1 == speedM2 && speedM2 == -4)
+                    {
+                        table.setValueAt("n/a", index + 1, 3);
+                        table.setValueAt("n/a", index + 1, 4);
+
+                    } else
+                    {
+                        table.setValueAt(speedM1, index + 1, 3);
+                        table.setValueAt(speedM2, index + 1, 4);
+                    }
 
                 }
             } else
