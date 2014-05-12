@@ -347,10 +347,6 @@ public class ArduinoConnection implements SerialPortEventListener, Runnable
     @Override
     public void run()
     {
-
-        final int TYPESTATE_NONE = 0;
-        final int TYPESTATE_SENT = 0;
-
         final long MAX_DELAY = 4 * 1000;
 
         arduinoType = TYPE_LOADING;
