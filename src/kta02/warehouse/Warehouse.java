@@ -1,6 +1,8 @@
 package kta02.warehouse;
 
 import java.util.ArrayList;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import kta02.comm.ArduinoConnection;
 import kta02.comm.InsufficientDevicesException;
 import kta02.comm.SerialCommunicator;
@@ -15,6 +17,7 @@ public class Warehouse
 
     public static void main(String[] args)
     {
+        setLookAndFeel();
 
         TestWindow testWin = new TestWindow();
 
@@ -48,6 +51,19 @@ public class Warehouse
         System.out.println("Connected to " + arduinos.size() + " Arduino('s).");
 
         testWin.setArduinoList(arduinos);
+    }
+
+    private static void setLookAndFeel()
+    {
+
+        try
+        {
+            // Make it look better
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex)
+        {
+            // Do nothing
+        }
     }
 
 }
