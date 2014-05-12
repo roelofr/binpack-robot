@@ -15,6 +15,9 @@ public class Warehouse
 
     public static void main(String[] args)
     {
+
+        TestWindow testWin = new TestWindow();
+
         ArrayList<ArduinoConnection> arduinos;
 
         System.out.println("KTA02");
@@ -29,23 +32,22 @@ public class Warehouse
             int errorCode = e.getCode();
             if (errorCode == InsufficientDevicesException.E_NO_DEVICES)
             {
-                System.out.println("No Arduino's connected!");
+                System.err.println("No Arduino's connected!");
 
             } else if (errorCode == InsufficientDevicesException.E_DEVICE_COUNT_TOO_HIGH)
             {
-                System.out.println("Please disconnect some Arduino's, there are too many Arduino's connected!");
+                System.err.println("Please disconnect some Arduino's, there are too many Arduino's connected!");
 
             } else if (errorCode == InsufficientDevicesException.E_DEVICE_COUNT_TOO_LOW)
             {
-                System.out.println("Please connect some Arduino's, there are insufficient Arduino's connected!");
+                System.err.println("Please connect some Arduino's, there are insufficient Arduino's connected!");
             }
             return;
         }
 
         System.out.println("Connected to " + arduinos.size() + " Arduino('s).");
 
-        new TestWindow(arduinos);
-
+        testWin.setArduinoList(arduinos);
     }
 
 }
