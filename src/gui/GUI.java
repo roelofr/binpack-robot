@@ -7,8 +7,10 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import kta02.domein.Bestelling;
 import kta02.domein.PackageLocation;
@@ -17,7 +19,10 @@ import xml.XMLReader;
 public class GUI extends JFrame implements ActionListener
 {
 
+    private Boolean DEBUG = false;
     private JFileChooser file;
+    private JCheckBox debugBTN;
+    private JLabel debugTXT;
 
     public GUI()
     {
@@ -40,14 +45,19 @@ public class GUI extends JFrame implements ActionListener
         file.setApproveButtonText("Run AS/RS!");
         file.setFileFilter(new FileNameExtensionFilter("XML Files", "xml"));
 
-        add(file);
+        debugBTN = new JCheckBox();
+        debugTXT = new JLabel("Debug?");
 
+        add(file);
+        add(debugTXT);
+        add(debugBTN);
         setVisible(true);
     }
 
     @Override
     public void actionPerformed(ActionEvent ae)
     {
+
         if (ae.getSource() == file)
         {
             if (ae.getActionCommand() == JFileChooser.APPROVE_SELECTION)
@@ -63,8 +73,10 @@ public class GUI extends JFrame implements ActionListener
 
                 Bestelling bestelling = reader.readFromXml();
 
-                // debug
-                //bestelling.print();
+                if (debugBTN.isSelected())
+                {
+                    bestelling.print();
+                }
                 DatabaseProcessor dbProcessor = new DatabaseProcessor(bestelling);
 
                 try
@@ -85,5 +97,10 @@ public class GUI extends JFrame implements ActionListener
 
         }
 
+    }
+
+    public void setDEBUG(Boolean DEBUG)
+    {
+        this.DEBUG = DEBUG;
     }
 }
