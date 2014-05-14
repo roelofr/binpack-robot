@@ -20,6 +20,7 @@ public class XMLReader
     private static final int FILTER_WORD = 2;
     private static final int FILTER_ZIP = 3;
     private static final int FILTER_DATE = 4;
+    int aantalArtikelen = 0;
 
     private File file;
 
@@ -31,7 +32,7 @@ public class XMLReader
     /**
      *
      * @param string
-     * @param expression
+     * @param what
      * @return
      */
     public String makeMatchExpression(String string, int what)
@@ -88,7 +89,6 @@ public class XMLReader
 
     public Bestelling readFromXml()
     {
-
         Bestelling bestelling = new Bestelling();
         Klant klant = new Klant();
         try
@@ -99,11 +99,9 @@ public class XMLReader
             Document doc = docBuilder.parse(file); //bestandnaam
             doc.getDocumentElement().normalize(); //Normaliseer tekst.
 
-            // order nummer ophalen
             String ordernummer = getFilteredDataFromTag(doc, "ordernummer", FILTER_NUM);
             bestelling.setBestelNummer(Integer.decode(ordernummer));
 
-            //Klantgegevens ophalen
             String voornaam = getFilteredDataFromTag(doc, "voornaam", FILTER_WORD);
             klant.setVoornaam(voornaam);
 
@@ -152,5 +150,10 @@ public class XMLReader
             t.printStackTrace();
         }
         return bestelling;
+    }
+
+    public int getAantalArtikelen()
+    {
+        return aantalArtikelen;
     }
 }

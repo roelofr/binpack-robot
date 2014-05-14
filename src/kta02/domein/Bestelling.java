@@ -17,11 +17,11 @@ public class Bestelling
     private int bestelNummer;
     private Klant klant;
     private String datum; //Datum is niet erg belangrijk en het is makkelijker als het een String is
-    private ArrayList<Integer> artikelnummers;
+    private ArrayList<Artikel> artikelnummers;
 
     public Bestelling()
     {
-        this.artikelnummers = new ArrayList<Integer>();
+        artikelnummers = new ArrayList<>();
     }
 
     public int getBestelNummer()
@@ -31,7 +31,7 @@ public class Bestelling
 
     public void voegToeArtikel(int artikelnummer)
     {
-        this.artikelnummers.add(artikelnummer);
+        artikelnummers.add(new Artikel(artikelnummer));
     }
 
     public void setBestelNummer(int bestelNummer)
@@ -54,9 +54,9 @@ public class Bestelling
         this.datum = datum;
     }
 
-    public ArrayList<Integer> getArtikelnummers()
+    public ArrayList<Artikel> getArtikelen()
     {
-        return this.artikelnummers;
+        return artikelnummers;
     }
 
     public Klant getKlant()
@@ -68,7 +68,7 @@ public class Bestelling
     {
         Bestelling bestelling = this;
         System.out.println("Het ordernummer is " + bestelling.getBestelNummer());
-        System.out.println("De artikelnummers zijn " + bestelling.getArtikelnummers());
+        System.out.println("De artikelnummers zijn " + bestelling.getArtikelen());
         System.out.println("De voornaam is " + bestelling.getKlant().getVoornaam());
         System.out.println("De achternaam is " + bestelling.getKlant().getAchternaam());
         System.out.println("Het adres is " + bestelling.getKlant().getAdres());
