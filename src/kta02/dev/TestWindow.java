@@ -231,6 +231,7 @@ public class TestWindow extends JFrame implements ActionListener, FocusListener,
                         table.setValueAt(speedM2, index + 1, 4);
                     }
 
+                    index += 1;
                 }
             } else
             {

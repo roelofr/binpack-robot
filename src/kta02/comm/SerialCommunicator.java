@@ -27,11 +27,6 @@ public class SerialCommunicator
         "COM6"
     };
 
-    /**
-     * Indicates the number of required Devices (Arduino's)
-     */
-    private static final int REQUIRED_DEVICE_COUNT = 1;
-
     public static ArrayList<ArduinoConnection> initialize() throws InsufficientDevicesException
     {
 
@@ -47,6 +42,8 @@ public class SerialCommunicator
             throw e;
         }
 
+        System.out.println("Availble port count: " + Integer.toString(connectedDevices.size()));
+
         ArrayList<ArduinoConnection> arduinoConnections;
         arduinoConnections = new ArrayList<>();
 
@@ -59,9 +56,10 @@ public class SerialCommunicator
                 arduinoConnections.add(temporaryConnection);
             } catch (IOException e)
             {
-                System.err.println(e.getMessage());
+                System.err.println("Connection failed! Error: " + e.getMessage());
             }
         }
+        System.out.println("Number of connected devices: " + arduinoConnections.size());
 
         return arduinoConnections;
     }
@@ -90,14 +88,14 @@ public class SerialCommunicator
             throw new InsufficientDevicesException("No devices are connected to the COM ports.", InsufficientDevicesException.E_NO_DEVICES);
         }
 
-        if (availablePorts.size() < REQUIRED_DEVICE_COUNT)
+        if (availablePorts.size() < 1)
         {
             throw new InsufficientDevicesException("There is an insufficient number of devices connected to this computer's COM ports.", InsufficientDevicesException.E_DEVICE_COUNT_TOO_LOW);
         }
 
-        if (availablePorts.size() > REQUIRED_DEVICE_COUNT)
+        if (availablePorts.size() > 2)
         {
-            throw new InsufficientDevicesException("There is an insufficient number of devices connected to this computer's COM ports.", InsufficientDevicesException.E_DEVICE_COUNT_TOO_HIGH);
+            throw new InsufficientDevicesException("There are too many devices connected to this computer's COM ports.", InsufficientDevicesException.E_DEVICE_COUNT_TOO_HIGH);
         }
 
         return availablePorts;

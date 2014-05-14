@@ -24,6 +24,8 @@ import java.util.TooManyListenersException;
 public class ArduinoBackend implements SerialPortEventListener
 {
 
+    private static final boolean DEBUG = false;
+
     /**
      * Milliseconds to block while waiting for port open
      */
@@ -61,6 +63,8 @@ public class ArduinoBackend implements SerialPortEventListener
 
     private int motorSpeeds[];
 
+    private long lastSeen;
+
     /**
      * Indicates if the port is closed, all commands will fail if this happens.
      */
@@ -76,6 +80,8 @@ public class ArduinoBackend implements SerialPortEventListener
         lastRead = 0;
         lastData = "";
         arduinoAvailable = false;
+
+        lastSeen = 0;
 
         comPort = portNumber.getName();
         portIdentifier = portNumber;
@@ -110,9 +116,14 @@ public class ArduinoBackend implements SerialPortEventListener
      *
      * @return
      */
-    protected Boolean isOnline()
+    public Boolean isOnline()
     {
         return arduinoAvailable;
+    }
+
+    public long getLastSeen()
+    {
+        return lastSeen;
     }
 
     /**
@@ -234,6 +245,7 @@ public class ArduinoBackend implements SerialPortEventListener
 
             for (String line : lines)
             {
+                lastSeen = new Date().getTime();
                 if (line.charAt(0) == '-')
                 {
                     if (line.length() >= 3)
@@ -246,7 +258,10 @@ public class ArduinoBackend implements SerialPortEventListener
                 {
                     lastData = line;
                     lastRead = new Date().getTime();
-                    System.out.println("[" + getComPort() + "] " + lastData + ".");
+                    if (DEBUG)
+                    {
+                        System.out.println("[" + getComPort() + "] " + lastData + ".");
+                    }
                 }
             }
         }
@@ -265,7 +280,10 @@ public class ArduinoBackend implements SerialPortEventListener
         {
             return false;
         }
-        System.out.println("Sending \"" + data + "\"...");
+        if (DEBUG)
+        {
+            System.out.println("Sending \"" + data + "\"...");
+        }
 
         try
         {

@@ -6,7 +6,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import kta02.comm.ArduinoConnection;
 import kta02.comm.InsufficientDevicesException;
 import kta02.comm.SerialCommunicator;
-import kta02.dev.TestWindow;
+import kta02.gui.MainGUI;
 
 /**
  *
@@ -15,18 +15,39 @@ import kta02.dev.TestWindow;
 public class Warehouse
 {
 
+    private static MainGUI UI;
+
+    private static ArrayList<ArduinoConnection> arduinos;
+
     public static void main(String[] args)
     {
         setLookAndFeel();
 
-        TestWindow testWin = new TestWindow();
+        UI = new MainGUI();
 
-        ArrayList<ArduinoConnection> arduinos;
+        arduinos = new ArrayList<>();
 
         System.out.println("KTA02");
         System.out.println("Bin-Packing Problem Simulator");
 
         // Connect to the Arduino's
+        connectToArduinos();
+    }
+
+    public synchronized static void disconnectArduinos()
+    {
+        System.out.println("Disconnecting from arduino's");
+        for (ArduinoConnection conn : arduinos)
+        {
+            conn.close();
+        }
+        arduinos.clear();
+
+    }
+
+    public synchronized static void connectToArduinos()
+    {
+        System.out.println("Connecting to arduino's");
         try
         {
             arduinos = SerialCommunicator.initialize();
@@ -45,12 +66,15 @@ public class Warehouse
             {
                 System.err.println("Please connect some Arduino's, there are insufficient Arduino's connected!");
             }
-            return;
         }
 
-        System.out.println("Connected to " + arduinos.size() + " Arduino('s).");
+        UI.setArduinos(arduinos);
+    }
 
-        testWin.setArduinoList(arduinos);
+    public synchronized static void reconnectToArduinos()
+    {
+        Warehouse.disconnectArduinos();
+        Warehouse.connectToArduinos();
     }
 
     private static void setLookAndFeel()
