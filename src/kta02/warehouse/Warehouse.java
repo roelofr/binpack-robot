@@ -3,7 +3,6 @@ package kta02.warehouse;
 import database.DatabaseConnection;
 import gui.GUI;
 import java.sql.SQLException;
-
 import java.util.ArrayList;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -33,25 +32,18 @@ public class Warehouse
 
         System.out.println("KTA02");
         System.out.println("Bin-Packing Problem Simulator");
- DatabaseConnection dbCon = new DatabaseConnection();
+        DatabaseConnection dbCon = new DatabaseConnection();
         try
         {
             dbCon.linkToQueryCollector();
-        }
-        catch (SQLException ex)
+        } catch (SQLException ex)
         {
             System.err.println(ex.getMessage());
         }
         new GUI();
-    }
+
         // Connect to the Arduino's
         connectToArduinos();
-        }
-        catch (SQLException ex)
-        {
-            System.err.println(ex.getMessage());
-        }
-        new GUI();
     }
 
     public synchronized static void disconnectArduinos()
