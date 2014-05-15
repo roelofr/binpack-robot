@@ -1,56 +1,48 @@
-package gui;
+package kta02.gui;
 
 import database.DatabaseProcessor;
-import java.awt.FlowLayout;
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import javax.swing.JCheckBox;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import kta02.domein.Bestelling;
 import kta02.domein.PackageLocation;
+import kta02.warehouse.Warehouse;
 import xml.XMLReader;
 
-public class GUI extends JFrame implements ActionListener
+public class XMLPicker extends JDialog implements ActionListener
 {
 
-    private Boolean DEBUG = kta02.warehouse.Warehouse.DEBUG;
     private JFileChooser file;
     private JCheckBox debugBTN;
     private JLabel debugTXT;
 
-    public GUI()
+    public XMLPicker()
     {
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         setSize(500, 500);
         setTitle("Start AS/RS!");
-        setLayout(new FlowLayout());
+        setLayout(new BorderLayout(16, 16));
         setLocationRelativeTo(null);
         setVisible(true);
 
-        // Thanks Google (source: http://goo.gl/XeKYSE )
-        File currentExecutable = new File(GUI.class.getProtectionDomain().getCodeSource().getLocation().getPath());
-        String filePath = currentExecutable.getParentFile().getParentFile().getPath();
-        char fileSep = File.separatorChar;
-        filePath = filePath + fileSep + "src" + fileSep + "xml";
+        File myDocuments = new JFileChooser().getFileSystemView().getDefaultDirectory();
 
         // Create the JFileChooser
-        file = new JFileChooser(new File(filePath));
+        file = new JFileChooser(myDocuments);
         file.addActionListener(this);
-        file.setApproveButtonText("Run AS/RS!");
+        file.setApproveButtonText("Open XML");
         file.setFileFilter(new FileNameExtensionFilter("XML Files", "xml"));
 
-        debugBTN = new JCheckBox();
-        debugTXT = new JLabel("Debug?");
-
-        add(file);
-        add(debugTXT);
-        add(debugBTN);
+        add(new JLabel("Please select an XML file to process"), BorderLayout.NORTH);
+        add(file, BorderLayout.CENTER);
         setVisible(true);
     }
 
@@ -60,7 +52,7 @@ public class GUI extends JFrame implements ActionListener
 
         if (ae.getSource() == file)
         {
-            if (ae.getActionCommand() == JFileChooser.APPROVE_SELECTION)
+            if (ae.getActionCommand().equals(JFileChooser.APPROVE_SELECTION))
             {
                 File currentFile = file.getSelectedFile();
 
@@ -73,7 +65,7 @@ public class GUI extends JFrame implements ActionListener
 
                 Bestelling bestelling = reader.readFromXml();
 
-                if (debugBTN.isSelected())
+                if (Warehouse.DEBUG)
                 {
                     bestelling.print();
                 }
@@ -88,17 +80,13 @@ public class GUI extends JFrame implements ActionListener
                     System.err.println(ex.getMessage());
                 }
 
-            } else if (ae.getActionCommand() == JFileChooser.CANCEL_SELECTION)
+            } else if (ae.getActionCommand().equals(JFileChooser.CANCEL_SELECTION))
             {
-                System.exit(0);
+                this.setVisible(false);
+                this.dispose();
             }
 
         }
 
-    }
-
-    public void setDEBUG(Boolean DEBUG)
-    {
-        this.DEBUG = DEBUG;
     }
 }

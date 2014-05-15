@@ -1,7 +1,6 @@
 package kta02.warehouse;
 
 import database.DatabaseConnection;
-import gui.GUI;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import javax.swing.UIManager;
@@ -18,9 +17,13 @@ import kta02.gui.MainGUI;
 public class Warehouse
 {
 
+    public static final boolean DEBUG = true;
+
     private static MainGUI UI;
 
     private static ArrayList<ArduinoConnection> arduinos;
+
+    static ArduinoConnection conn;
 
     public static void main(String[] args)
     {
@@ -40,7 +43,6 @@ public class Warehouse
         {
             System.err.println(ex.getMessage());
         }
-        new GUI();
 
         // Connect to the Arduino's
         connectToArduinos();
@@ -100,6 +102,16 @@ public class Warehouse
         {
             // Do nothing
         }
+    }
+
+    public static void _devSetSelectedArduno(ArduinoConnection conn)
+    {
+        Warehouse.conn = conn;
+    }
+
+    public static ArduinoConnection _devGetSelectedArduno()
+    {
+        return conn;
     }
 
 }

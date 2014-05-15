@@ -149,6 +149,11 @@ public class ArduinoConnection extends ArduinoBackend implements Runnable
         return false;
     }
 
+    public boolean isValidArduino()
+    {
+        return (getType() == TYPE_BIN || getType() == TYPE_MOTOR) && isOnline();
+    }
+
     public char getType()
     {
         return arduinoType;

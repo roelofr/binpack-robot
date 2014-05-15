@@ -24,7 +24,7 @@ import java.util.TooManyListenersException;
 public class ArduinoBackend implements SerialPortEventListener
 {
 
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = kta02.warehouse.Warehouse.DEBUG;
 
     /**
      * Milliseconds to block while waiting for port open

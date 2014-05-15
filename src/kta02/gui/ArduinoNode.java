@@ -11,17 +11,20 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridLayout;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.Date;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import kta02.comm.ArduinoConnection;
+import kta02.dev.ManualArduinoControl;
 import kta02.warehouse.Warehouse;
 
 /**
  *
  * @author Roelof
  */
-public class ArduinoNode extends JPanel implements Runnable
+public class ArduinoNode extends JPanel implements Runnable, MouseListener
 {
 
     private static final long ARDUINO_PING_DEATH = 6000;
@@ -35,10 +38,15 @@ public class ArduinoNode extends JPanel implements Runnable
     JLabel status[];
 
     Thread updateThread;
+    ArduinoList parent;
 
-    public ArduinoNode(ArduinoConnection comm)
+    boolean isSelected;
+
+    public ArduinoNode(ArduinoConnection comm, ArduinoList parent)
     {
         this.comm = comm;
+        this.parent = parent;
+        isSelected = false;
 
         setLayout(new BorderLayout(5, 0));
 
@@ -101,11 +109,23 @@ public class ArduinoNode extends JPanel implements Runnable
 
         updateThread = new Thread(this);
         updateThread.start();
+
+        addMouseListener(this);
     }
 
     public void onBeforeDelete()
     {
         updateThread.interrupt();
+    }
+
+    public boolean isActive()
+    {
+        return isSelected;
+    }
+
+    public void setActive(Boolean active)
+    {
+        isSelected = active;
     }
 
     /**
@@ -118,6 +138,12 @@ public class ArduinoNode extends JPanel implements Runnable
     {
 
         super.paintComponent(g);
+
+        if (isSelected)
+        {
+            g.setColor(new Color(255, 255, 255, 100));
+            g.drawRect(0, 0, (int) getPreferredSize().getWidth(), (int) getPreferredSize().getHeight());
+        }
 
     }
 
@@ -202,5 +228,44 @@ public class ArduinoNode extends JPanel implements Runnable
         {
             this.setVisible(false);
         }
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e)
+    {
+        setActive(true);
+        parent.setActiveElement(comm);
+
+        if (Warehouse.DEBUG)
+        {
+            ManualArduinoControl dialog = new ManualArduinoControl(comm);
+            dialog.setVisible(true);
+
+            dialog.setAlwaysOnTop(true);
+        }
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e)
+    {
+        // Nah
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e)
+    {
+        // Nope
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e)
+    {
+        // Nuh-uh
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e)
+    {
+        // Nein mann
     }
 }

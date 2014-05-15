@@ -93,7 +93,7 @@ public class ArduinoList extends JPanel implements ActionListener
 
             for (ArduinoConnection arduino : arduinoList)
             {
-                ArduinoNode arNode = new ArduinoNode(arduino);
+                ArduinoNode arNode = new ArduinoNode(arduino, this);
                 EasyGUI.addFiller(arduinoPanel, EasyGUI.FILLER_SMALL, null);
                 arduinoPanel.add(arNode);
 
@@ -103,6 +103,20 @@ public class ArduinoList extends JPanel implements ActionListener
         arduinoPanel.revalidate();
         revalidate();
         resetButton.setEnabled(true);
+    }
+
+    public void setActiveElement(ArduinoConnection arCon)
+    {
+        if (arNodes != null && arNodes.size() > 0)
+        {
+            for (ArduinoNode an : arNodes)
+            {
+                an.setActive(false);
+            }
+            arduinoPanel.revalidate();
+        }
+
+        Warehouse._devSetSelectedArduno(arCon);
     }
 
     @Override
