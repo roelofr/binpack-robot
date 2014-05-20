@@ -63,6 +63,8 @@ public class ArduinoBackend implements SerialPortEventListener
 
     private int motorSpeeds[];
 
+    private int sensorData[];
+
     private long lastSeen;
 
     /**
@@ -156,6 +158,24 @@ public class ArduinoBackend implements SerialPortEventListener
         return lastData;
     }
 
+    private int getMotorData(int motorNr)
+    {
+        if (motorNr < 0 || motorNr > motorSpeeds.length)
+        {
+            return 0;
+        }
+        return motorSpeeds[motorNr];
+    }
+
+    public int getSensorData(int sensorNr)
+    {
+        if (sensorNr < 0 || sensorNr > sensorData.length)
+        {
+            return 0;
+        }
+        return sensorData[sensorNr];
+    }
+
     /**
      * Returns the speed of the first motor
      *
@@ -164,7 +184,7 @@ public class ArduinoBackend implements SerialPortEventListener
      */
     public int getMotor1Velocity()
     {
-        return motorSpeeds[0];
+        return getMotorData(0);
     }
 
     /**
@@ -175,7 +195,7 @@ public class ArduinoBackend implements SerialPortEventListener
      */
     public int getMotor2Velocity()
     {
-        return motorSpeeds[1];
+        return getMotorData(1);
     }
 
     /**
@@ -248,10 +268,26 @@ public class ArduinoBackend implements SerialPortEventListener
                 lastSeen = new Date().getTime();
                 if (line.charAt(0) == '-')
                 {
+                    line.replaceAll("([^0-9]+)", "");
                     if (line.length() >= 3)
                     {
                         motorSpeeds[0] = Integer.parseInt(line.substring(1, 2)) - 4;
                         motorSpeeds[1] = Integer.parseInt(line.substring(2, 3)) - 4;
+                        line = line.substring(3);
+                    }
+                    if (sensorData == null)
+                    {
+                        sensorData = new int[line.length()];
+                    }
+                    int i = 0;
+                    while (line.length() > 0)
+                    {
+                        if (sensorData.length < i)
+                        {
+                            break;
+                        }
+                        sensorData[i] = Integer.parseInt(line.substring(i, i + 1));
+                        i++;
                     }
                     arduinoAvailable = true;
                 } else
