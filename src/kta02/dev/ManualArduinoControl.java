@@ -6,6 +6,7 @@
 package kta02.dev;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -15,9 +16,9 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.SpringLayout;
 import kta02.comm.ArduinoConnection;
 import kta02.gui.EasyGUI;
+import kta02.warehouse.Warehouse;
 
 /**
  *
@@ -51,6 +52,7 @@ public class ManualArduinoControl extends JDialog implements ActionListener, Run
     };
 
     ArduinoConnection connection;
+    Warehouse wh;
 
     JLabel topLabel;
     JLabel bottomLabel;
@@ -58,13 +60,19 @@ public class ManualArduinoControl extends JDialog implements ActionListener, Run
     JButton topButtons[];
     JButton bottomButtons[];
 
+    JButton emergencyStop;
     JButton closeBtn;
+    JButton doPickup;
 
     Thread updateThread;
 
-    public ManualArduinoControl(ArduinoConnection connection)
+    int motorSpeed1;
+    int motorSpeed2;
+
+    public ManualArduinoControl(ArduinoConnection connection, Warehouse wh)
     {
         this.connection = connection;
+        this.wh = wh;
 
         setLayout(new GridLayout(4, 1, 0, 6));
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -83,12 +91,21 @@ public class ManualArduinoControl extends JDialog implements ActionListener, Run
         add(addButtonFrame(bottomLabel, bottomButtons));
 
         JPanel closeButtonFrame = new JPanel();
-        closeButtonFrame.setLayout(new SpringLayout());
+        closeButtonFrame.setLayout(new BorderLayout(0, 10));
         add(closeButtonFrame);
 
         closeBtn = new JButton("Sluiten");
         closeBtn.addActionListener(this);
-        closeButtonFrame.add(closeBtn);
+        closeButtonFrame.add(closeBtn, BorderLayout.WEST);
+
+        doPickup = new JButton("Oppakken");
+        doPickup.addActionListener(this);
+        closeButtonFrame.add(doPickup, BorderLayout.EAST);
+
+        emergencyStop = new JButton("Noodstop");
+        emergencyStop.addActionListener(this);
+        emergencyStop.setBackground(Color.red);
+        closeButtonFrame.add(emergencyStop, BorderLayout.CENTER);
 
         updateThread = new Thread(this);
         updateThread.start();
@@ -132,6 +149,69 @@ public class ManualArduinoControl extends JDialog implements ActionListener, Run
         return frame;
     }
 
+    private synchronized void emergencyStop()
+    {
+
+        emergencyStop.setEnabled(false);
+        for (int i = 0; i < bottomButtons.length; i++)
+        {
+            if (topButtons[i] != null)
+            {
+                topButtons[i].setEnabled(false);
+            }
+            if (bottomButtons[i] != null)
+            {
+                bottomButtons[i].setEnabled(false);
+            }
+        }
+        while (connection.getMotor2Velocity() != 0 || connection.getMotor1Velocity() != 0)
+        {
+            if (connection.getMotor2Velocity() != 0)
+            {
+                if (motorSpeed2 < 4)
+                {
+                    motorSpeed2 = 4;
+                    connection.performAction(ArduinoConnection.ACTION_MOTOR2, ArduinoConnection.PARAM_MOTOR_FW1);
+                } else
+                {
+                    connection.performAction(ArduinoConnection.ACTION_MOTOR2, ArduinoConnection.PARAM_MOTOR_STOP);
+                }
+            }
+            if (connection.getMotor1Velocity() != 0)
+            {
+                if (motorSpeed1 < 4)
+                {
+                    motorSpeed1 = 4;
+                    connection.performAction(ArduinoConnection.ACTION_MOTOR1, ArduinoConnection.PARAM_MOTOR_FW1);
+                } else
+                {
+                    connection.performAction(ArduinoConnection.ACTION_MOTOR1, ArduinoConnection.PARAM_MOTOR_STOP);
+                }
+            }
+            try
+            {
+                Thread.sleep(100);
+
+            } catch (InterruptedException exc)
+            {
+
+            }
+        }
+
+        emergencyStop.setEnabled(true);
+        for (int i = 0; i < bottomButtons.length; i++)
+        {
+            if (topButtons[i] != null)
+            {
+                topButtons[i].setEnabled(true);
+            }
+            if (bottomButtons[i] != null)
+            {
+                bottomButtons[i].setEnabled(true);
+            }
+        }
+    }
+
     @Override
     public void actionPerformed(ActionEvent e)
     {
@@ -145,29 +225,79 @@ public class ManualArduinoControl extends JDialog implements ActionListener, Run
             this.dispose();
             return;
         }
+
+        if (e.getSource() == emergencyStop)
+        {
+            Warehouse.emergency();
+            return;
+        }
+
+        if (e.getSource() == doPickup)
+        {
+            emergencyStop();
+            wh.startPickup();
+            return;
+        }
+
+        String motorIdentifier = null;
+        String motorParam = null;
+        int oldSpeed = 0;
+
         int i = 0;
         for (JButton btn : topButtons)
         {
             if (e.getSource() == btn)
             {
-                connection.performAction(MOTOR1_CMD, MOTOR_SPEEDS[i]);
-                return;
+                motorIdentifier = MOTOR1_CMD;
+                motorParam = MOTOR_SPEEDS[i];
+                oldSpeed = motorSpeed1;
+                motorSpeed1 = Integer.parseInt(MOTOR_SPEEDS[i]);
+                break;
             }
             i++;
         }
-
-        i = 0;
-        for (JButton btn : bottomButtons)
+        if (motorParam == null)
         {
-            if (e.getSource() == btn)
+
+            i = 0;
+            for (JButton btn : bottomButtons)
             {
-                connection.performAction(MOTOR2_CMD, MOTOR_SPEEDS[i]);
-                return;
+                if (e.getSource() == btn)
+                {
+                    motorIdentifier = MOTOR2_CMD;
+                    motorParam = MOTOR_SPEEDS[i];
+                    oldSpeed = motorSpeed2;
+                    motorSpeed2 = Integer.parseInt(MOTOR_SPEEDS[i]);
+                    break;
+                }
+                i++;
             }
-            i++;
         }
 
-        JOptionPane.showMessageDialog(this, "Er is iets fout gegaan: Onbekende event bron", "Error!", JOptionPane.WARNING_MESSAGE);
+        if (motorParam == null)
+        {
+            JOptionPane.showMessageDialog(this, "Er is iets fout gegaan: Onbekende event bron", "Error!", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (oldSpeed < 4 && motorParam.equals(ArduinoConnection.PARAM_MOTOR_STOP))
+        {
+
+            connection.performAction(motorIdentifier, ArduinoConnection.PARAM_MOTOR_FW1);
+            try
+            {
+                Thread.sleep(100);
+
+            } catch (InterruptedException exc)
+            {
+
+            }
+            connection.performAction(motorIdentifier, ArduinoConnection.PARAM_MOTOR_STOP);
+
+        } else
+        {
+            connection.performAction(motorIdentifier, motorParam);
+        }
     }
 
     @Override
@@ -208,6 +338,7 @@ public class ManualArduinoControl extends JDialog implements ActionListener, Run
             {
                 oldEnabled = enabled;
 
+                emergencyStop.setEnabled(enabled);
                 for (int i = 0; i < bottomButtons.length; i++)
                 {
                     if (topButtons[i] != null)

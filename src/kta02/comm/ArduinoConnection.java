@@ -159,6 +159,25 @@ public class ArduinoConnection extends ArduinoBackend implements Runnable
         return arduinoType;
     }
 
+    public String getTypeName()
+    {
+        switch (getType())
+        {
+            case TYPE_BIN:
+                return "Z/Bin Motor";
+            case TYPE_IN_USE:
+                return "Device in use";
+            case TYPE_LOADING:
+                return "Loading...";
+            case TYPE_MOTOR:
+                return "X/Y Motor";
+            case TYPE_OFFLINE:
+                return "Offline";
+            default:
+                return "Unknown";
+        }
+    }
+
     /**
      * Performs the action in <code>action</code> using <code>parameter</code>
      * as parameter.

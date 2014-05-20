@@ -20,6 +20,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import kta02.comm.ArduinoConnection;
 import kta02.easteregg.EasterEggKeyListener;
+import kta02.warehouse.Warehouse;
 
 /**
  *
@@ -32,8 +33,12 @@ public class MainGUI extends JFrame
     ArduinoList connectedDevices;
     CurrentStatusPanel statusPanel;
 
-    public MainGUI()
+    Warehouse wh;
+
+    public MainGUI(Warehouse wh)
     {
+
+        this.wh = wh;
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -65,7 +70,7 @@ public class MainGUI extends JFrame
         JPanel screenContent = new JPanel(new BorderLayout());
         add(screenContent, BorderLayout.CENTER);
 
-        connectedDevices = new ArduinoList();
+        connectedDevices = new ArduinoList(wh);
         add(connectedDevices, BorderLayout.WEST);
 
         statusPanel = new CurrentStatusPanel();
