@@ -1,10 +1,11 @@
 package database;
 
+import java.awt.Point;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import kta02.domein.Artikel;
 import kta02.domein.Bestelling;
-import kta02.domein.PackageLocation;
 
 public class DatabaseProcessor
 {
@@ -17,12 +18,14 @@ public class DatabaseProcessor
         this.order = order;
     }
 
-    public ArrayList<PackageLocation> processArticles() throws SQLException
+    public ArrayList<Artikel> processArticles() throws SQLException
     {
-        ArrayList<PackageLocation> foundPackages = new ArrayList<>();
-
-        for (int artikelNr : order.getArtikelnummers())
+        ArrayList<Artikel> artikelen = order.getArtikelen();
+        int artikelNr;
+        for (Artikel artikel : artikelen)
         {
+            artikelNr = artikel.getArtikelnr();
+            // Step 1, get the cell position
             ResultSet rs = DatabaseQueryCollector.getInstance().getLocation(artikelNr);
 
             while (rs.next())
@@ -30,12 +33,23 @@ public class DatabaseProcessor
                 int posx = rs.getInt("posX");
                 int posy = rs.getInt("posY");
 
-                foundPackages.add(new PackageLocation(posx, posy, artikelNr));
+                artikel.setLocatie(new Point(posx, posy));
+
+            }
+
+            // Step 1, get the article name
+            rs = DatabaseQueryCollector.getInstance().getDescription(artikelNr);
+
+            while (rs.next())
+            {
+                String desc = rs.getString(1);
+
+                artikel.setBeschrijving(desc);
 
             }
         }
 
-        return foundPackages;
+        return artikelen;
 
     }
 

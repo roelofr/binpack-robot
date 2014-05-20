@@ -70,7 +70,7 @@ public class DatabaseQueryCollector
             statement = dbConn.createStatement();
             rs = statement.executeQuery("SELECT description "
                     + "FROM Artikel "
-                    + "WHERE id = ( SELECT `description` FROM `Artikel` WHERE `artikel_id` = '" + artikel + "' )"
+                    + "WHERE id = '" + artikel + "'"
             );
 
         }

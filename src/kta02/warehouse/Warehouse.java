@@ -1,6 +1,9 @@
 package kta02.warehouse;
 
 import database.DatabaseConnection;
+import database.DatabaseProcessor;
+import gui.GUI;
+import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import javax.swing.UIManager;
@@ -9,6 +12,11 @@ import kta02.comm.ArduinoConnection;
 import kta02.comm.InsufficientDevicesException;
 import kta02.comm.SerialCommunicator;
 import kta02.gui.MainGUI;
+import kta02.domein.Artikel;
+import kta02.domein.Bestelling;
+import kta02.domein.Klant;
+import kta02.xml.XMLWriter;
+import xml.XMLReader;
 
 /**
  *
@@ -16,7 +24,12 @@ import kta02.gui.MainGUI;
  */
 public class Warehouse
 {
+	
+    static XMLReader reader;
+    static Bestelling bestelling;
 
+    static DatabaseProcessor dbProcessor;
+    
     public static final boolean DEBUG = true;
 
     private static MainGUI UI;
@@ -112,6 +125,53 @@ public class Warehouse
     public static ArduinoConnection _devGetSelectedArduno()
     {
         return conn;
+    }
+
+    public static void setXMLFile(File file)
+    {
+        reader = new XMLReader(file.getPath());
+
+        bestelling = reader.readFromXml();
+
+        dbProcessor = new DatabaseProcessor(bestelling);
+
+        try
+        {
+            dbProcessor.processArticles();
+            System.out.println("__________________________________________________________________");
+            for (Artikel artikel : bestelling.getArtikelen())
+            {
+                System.out.println(artikel);
+            }
+            System.out.println("__________________________________________________________________");
+        }
+        catch (SQLException ex)
+        {
+            System.err.println(ex.getMessage());
+        }
+
+        String bestandsNaam = "";
+        String volledigeKlantNaam = bestelling.getKlant().getVoornaam() + " " + bestelling.getKlant().getAchternaam();
+        bestandsNaam += bestelling.getBestelNummer() + ". " + volledigeKlantNaam;
+        bestandsNaam += ".xml";
+
+        new XMLWriter(bestelling).writeXML(bestandsNaam);
+
+    }
+
+    public static DatabaseProcessor getDbProcessor()
+    {
+        return dbProcessor;
+    }
+
+    public static Bestelling getBestelling()
+    {
+        return bestelling;
+    }
+
+    public static Klant getKlant()
+    {
+        return bestelling.getKlant();
     }
 
 }
