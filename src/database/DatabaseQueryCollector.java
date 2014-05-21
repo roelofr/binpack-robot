@@ -49,7 +49,7 @@ public class DatabaseQueryCollector
             statement = dbConn.createStatement();
             rs = statement.executeQuery("SELECT posX,posY "
                     + "FROM Cell "
-                    + "WHERE id = ( SELECT `cell_id` FROM `Item` WHERE `artikel_id` = '" + artikel + "' )");
+                    + "WHERE id = ( SELECT `cell_id` FROM `Item` WHERE `artikel_id` = '" + artikel + "')");
 
         }
         catch (SQLException e)

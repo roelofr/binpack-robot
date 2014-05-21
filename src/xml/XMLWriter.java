@@ -24,6 +24,7 @@ public class XMLWriter
     Bestelling bestellingObject;
 
     public XMLWriter(Bestelling bestelling)
+
     {
         this.klantObject = bestelling.getKlant();
         this.bestellingObject = bestelling;
@@ -32,6 +33,7 @@ public class XMLWriter
     public void writeXML(String fileName)
     {
         //for loop met hoeveel pakbonnen er zijn.
+        //zoek volgorde van producten op en zit deze op pakbon.
         try
         {
 
