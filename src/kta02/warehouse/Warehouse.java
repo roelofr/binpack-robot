@@ -5,10 +5,12 @@ import database.DatabaseProcessor;
 import gui.GUI;
 import java.io.File;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import kta02.domein.Artikel;
 import kta02.domein.Bestelling;
 import kta02.domein.Klant;
 import kta02.xml.XMLWriter;
+import kta02.tsp.Algoritm;
 import xml.XMLReader;
 
 /**
@@ -43,6 +45,7 @@ public class Warehouse
 
     public static void setXMLFile(File file)
     {
+        System.out.println("start");
         reader = new XMLReader(file.getPath());
 
         bestelling = reader.readFromXml();
@@ -70,7 +73,12 @@ public class Warehouse
         bestandsNaam += ".xml";
 
         new XMLWriter(bestelling).writeXML(bestandsNaam);
-
+        
+        
+        //TEST FOR ALGORITHM
+        //REMOVE WHEN DONE
+        
+        ArrayList<Integer> orderSorting = Algoritm.tourImprovement(bestelling.getArtikelen(), 0, 0);
     }
 
     public static DatabaseProcessor getDbProcessor()
