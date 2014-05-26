@@ -40,12 +40,15 @@ public class ArduinoNode extends JPanel implements Runnable, MouseListener
     Thread updateThread;
     ArduinoList parent;
 
+    Warehouse wh;
+
     boolean isSelected;
 
-    public ArduinoNode(ArduinoConnection comm, ArduinoList parent)
+    public ArduinoNode(ArduinoConnection comm, ArduinoList parent, Warehouse wh)
     {
         this.comm = comm;
         this.parent = parent;
+        this.wh = wh;
         isSelected = false;
 
         setLayout(new BorderLayout(5, 0));
@@ -164,25 +167,7 @@ public class ArduinoNode extends JPanel implements Runnable, MouseListener
             }
 
             speed1 = speed2 = -4;
-            if (comm.getType() == ArduinoConnection.TYPE_LOADING)
-            {
-                type = "Loading...";
-            } else if (comm.getType() == ArduinoConnection.TYPE_MOTOR)
-            {
-                type = "Motor X-Y";
-            } else if (comm.getType() == ArduinoConnection.TYPE_BIN)
-            {
-                type = "Motor Z/bin";
-            } else if (comm.getType() == ArduinoConnection.TYPE_OFFLINE)
-            {
-                type = "Connecting...";
-            } else if (comm.getType() == ArduinoConnection.TYPE_IN_USE)
-            {
-                type = "Device in use";
-            } else
-            {
-                type = "Unknown";
-            }
+            type = comm.getTypeName();
 
             if (comm.getType() == ArduinoConnection.TYPE_MOTOR || comm.getType() == ArduinoConnection.TYPE_BIN)
             {
@@ -205,7 +190,7 @@ public class ArduinoNode extends JPanel implements Runnable, MouseListener
                     {
                         this.setVisible(false);
 
-                        Warehouse.reconnectToArduinos();
+                        wh.reconnectToArduinos();
                     }
                 } else
                 {
@@ -233,16 +218,8 @@ public class ArduinoNode extends JPanel implements Runnable, MouseListener
     @Override
     public void mouseClicked(MouseEvent e)
     {
-        setActive(true);
-        parent.setActiveElement(comm);
-
-        if (Warehouse.DEBUG)
-        {
-            ManualArduinoControl dialog = new ManualArduinoControl(comm);
-            dialog.setVisible(true);
-
-            dialog.setAlwaysOnTop(true);
-        }
+        ManualArduinoControl dialog = new ManualArduinoControl(comm, wh);
+        dialog.setVisible(true);
     }
 
     @Override

@@ -2,6 +2,7 @@ package kta02.warehouse;
 
 import database.DatabaseConnection;
 import database.DatabaseProcessor;
+import java.awt.Point;
 import gui.GUI;
 import java.io.File;
 import java.sql.SQLException;
@@ -11,6 +12,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import kta02.comm.ArduinoConnection;
 import kta02.comm.InsufficientDevicesException;
 import kta02.comm.SerialCommunicator;
+import kta02.gui.EmergencyPanel;
 import kta02.gui.MainGUI;
 import kta02.domein.Artikel;
 import kta02.domein.Bestelling;
@@ -22,7 +24,7 @@ import xml.XMLReader;
  *
  * @author Huib
  */
-public class Warehouse
+public class Warehouse implements Runnable
 {
 	
     static XMLReader reader;
@@ -32,17 +34,77 @@ public class Warehouse
     
     public static final boolean DEBUG = true;
 
-    private static MainGUI UI;
+    private static Warehouse warehouse;
 
-    private static ArrayList<ArduinoConnection> arduinos;
+    private final MainGUI UI;
 
-    static ArduinoConnection conn;
+    private final RobotMover mover;
+
+    private ArrayList<ArduinoConnection> arduinos;
+
+    private final Thread recognizerThread;
+
+    private EmergencyPanel emPanel;
 
     public static void main(String[] args)
     {
+        warehouse = new Warehouse();
+    }
+
+    /**
+     * Forces all systems to stop, on all arduinos
+     */
+    public static void emergency()
+    {
+        warehouse.emergencyStop();
+    }
+
+    public void emergencyStop()
+    {
+        int i = 0;
+        while (i < 4)
+        {
+            for (ArduinoConnection conn : arduinos)
+            {
+                conn.setEmergencyFlag(true);
+            }
+            sleep(30);
+            i++;
+        }
+
+        if (emPanel != null && emPanel.isVisible())
+        {
+            return;
+        }
+
+        emPanel = new EmergencyPanel(this);
+    }
+
+    public void restoreSystems()
+    {
+        int i = 0;
+        while (i < 4)
+        {
+            for (ArduinoConnection conn : arduinos)
+            {
+                conn.setEmergencyFlag(false);
+            }
+            sleep(30);
+            i++;
+        }
+
+        if (emPanel != null && emPanel.isVisible())
+        {
+            emPanel.dispose();
+        }
+    }
+
+    private Warehouse()
+    {
         setLookAndFeel();
 
-        UI = new MainGUI();
+        UI = new MainGUI(this);
+        mover = new RobotMover();
 
         arduinos = new ArrayList<>();
 
@@ -57,13 +119,27 @@ public class Warehouse
             System.err.println(ex.getMessage());
         }
 
+        recognizerThread = new Thread(this);
+
         // Connect to the Arduino's
         connectToArduinos();
     }
 
-    public synchronized static void disconnectArduinos()
+    public void addPointToFetchQueue(Point target)
     {
-        System.out.println("Disconnecting from arduino's");
+        mover.addToFetchQueue(target);
+    }
+
+    public void startPickup()
+    {
+        mover.startPickup();
+    }
+
+    /**
+     * Disconnect all Arduino's
+     */
+    public synchronized void disconnectArduinos()
+    {
         for (ArduinoConnection conn : arduinos)
         {
             conn.close();
@@ -72,9 +148,11 @@ public class Warehouse
 
     }
 
-    public synchronized static void connectToArduinos()
+    /**
+     * Connects to Arduino's
+     */
+    public synchronized void connectToArduinos()
     {
-        System.out.println("Connecting to arduino's");
         try
         {
             arduinos = SerialCommunicator.initialize();
@@ -96,15 +174,26 @@ public class Warehouse
         }
 
         UI.setArduinos(arduinos);
+        if (!recognizerThread.isAlive())
+        {
+            recognizerThread.start();
     }
 
-    public synchronized static void reconnectToArduinos()
+    }
+
+    /**
+     * Makes the program reconnect
+     */
+    public synchronized void reconnectToArduinos()
     {
-        Warehouse.disconnectArduinos();
-        Warehouse.connectToArduinos();
+        disconnectArduinos();
+        connectToArduinos();
     }
 
-    private static void setLookAndFeel()
+    /**
+     * Sets the look and feel to Windows-ish
+     */
+    private void setLookAndFeel()
     {
 
         try
@@ -117,14 +206,56 @@ public class Warehouse
         }
     }
 
-    public static void _devSetSelectedArduno(ArduinoConnection conn)
+    private void sleep(long delay)
     {
-        Warehouse.conn = conn;
+        try
+        {
+            Thread.sleep(delay);
+        } catch (InterruptedException ex)
+        {
+            // No, not gonna do anything
+    }
     }
 
-    public static ArduinoConnection _devGetSelectedArduno()
+    /**
+     * Thread runner
+     */
+    @Override
+    public void run()
     {
-        return conn;
+        // Continue untill interrupted
+        while (!Thread.currentThread().isInterrupted())
+        {
+            if (arduinos == null)
+            {
+
+                System.err.println("No Arduinos yet, waiting 5 seconds");
+                sleep(5000);
+                continue;
+    }
+
+            if (arduinos.size() < 2)
+            {
+                System.err.println("Not enough arduinos for recognizer, waiting 5 seconds.");
+                sleep(5000);
+                continue;
+            }
+
+            for (ArduinoConnection conn : arduinos)
+            {
+                if (conn.isValidArduino())
+                {
+                    if (conn.getType() == ArduinoConnection.TYPE_BIN)
+                    {
+                        mover.setBinRobot(conn);
+                    } else if (conn.getType() == ArduinoConnection.TYPE_MOTOR)
+                    {
+                        mover.setMoveRobot(conn);
+                    }
+                }
+            }
+            sleep(5 * 1000);
+        }
     }
 
     public static void setXMLFile(File file)

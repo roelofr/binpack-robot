@@ -35,6 +35,9 @@ public class ArduinoBackend implements SerialPortEventListener
      */
     private static final int DATA_RATE = 9600;
 
+    private static final String emergencyOn = "q";
+    private static final String emergencyOff = "r";
+
     /**
      * Serial Port connection
      */
@@ -268,6 +271,7 @@ public class ArduinoBackend implements SerialPortEventListener
                 lastSeen = new Date().getTime();
                 if (line.charAt(0) == '-')
                 {
+                    arduinoAvailable = true;
                     line.replaceAll("([^0-9]+)", "");
                     if (line.length() >= 3)
                     {
@@ -279,6 +283,10 @@ public class ArduinoBackend implements SerialPortEventListener
                     {
                         sensorData = new int[line.length()];
                     }
+                    if (line.length() == 0)
+                    {
+                        continue;
+                    }
                     int i = 0;
                     while (line.length() > 0)
                     {
@@ -289,7 +297,6 @@ public class ArduinoBackend implements SerialPortEventListener
                         sensorData[i] = Integer.parseInt(line.substring(i, i + 1));
                         i++;
                     }
-                    arduinoAvailable = true;
                 } else
                 {
                     lastData = line;
@@ -316,10 +323,6 @@ public class ArduinoBackend implements SerialPortEventListener
         {
             return false;
         }
-        if (DEBUG)
-        {
-            System.out.println("Sending \"" + data + "\"...");
-        }
 
         try
         {
@@ -331,5 +334,24 @@ public class ArduinoBackend implements SerialPortEventListener
         }
         return true;
 
+    }
+
+    public void setEmergencyFlag(boolean emergency)
+    {
+        if (emergency)
+        {
+            write(emergencyOn);
+            write(emergencyOn);
+            write(emergencyOn);
+            write(emergencyOn);
+            write(emergencyOn);
+        } else
+        {
+            write(emergencyOff);
+            write(emergencyOff);
+            write(emergencyOff);
+            write(emergencyOff);
+            write(emergencyOff);
+        }
     }
 }

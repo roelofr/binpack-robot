@@ -23,7 +23,7 @@ import kta02.warehouse.Warehouse;
  *
  * @author Roelof
  */
-public class ArduinoList extends JPanel implements ActionListener
+public final class ArduinoList extends JPanel implements ActionListener
 {
 
     ArrayList<ArduinoNode> arNodes;
@@ -31,8 +31,12 @@ public class ArduinoList extends JPanel implements ActionListener
     JPanel arduinoPanel;
     JButton resetButton;
 
-    public ArduinoList()
+    Warehouse warehouse;
+
+    public ArduinoList(Warehouse warehouseConnection)
     {
+        warehouse = warehouseConnection;
+
         setLayout(new BorderLayout());
         setBackground(new Color(240, 245, 255));
 
@@ -78,7 +82,7 @@ public class ArduinoList extends JPanel implements ActionListener
         }
         arduinoPanel.removeAll();
 
-        if (arduinoList == null || arduinoList.size() == 0)
+        if (arduinoList == null || arduinoList.isEmpty())
         {
 
             EasyGUI.addFiller(arduinoPanel, EasyGUI.FILLER_LARGE, null);
@@ -93,7 +97,7 @@ public class ArduinoList extends JPanel implements ActionListener
 
             for (ArduinoConnection arduino : arduinoList)
             {
-                ArduinoNode arNode = new ArduinoNode(arduino, this);
+                ArduinoNode arNode = new ArduinoNode(arduino, this, warehouse);
                 EasyGUI.addFiller(arduinoPanel, EasyGUI.FILLER_SMALL, null);
                 arduinoPanel.add(arNode);
 
@@ -105,27 +109,13 @@ public class ArduinoList extends JPanel implements ActionListener
         resetButton.setEnabled(true);
     }
 
-    public void setActiveElement(ArduinoConnection arCon)
-    {
-        if (arNodes != null && arNodes.size() > 0)
-        {
-            for (ArduinoNode an : arNodes)
-            {
-                an.setActive(false);
-            }
-            arduinoPanel.revalidate();
-        }
-
-        Warehouse._devSetSelectedArduno(arCon);
-    }
-
     @Override
     public void actionPerformed(ActionEvent e)
     {
         if (e.getSource() == resetButton)
         {
             resetButton.setEnabled(false);
-            Warehouse.reconnectToArduinos();
+            warehouse.reconnectToArduinos();
         }
     }
 
