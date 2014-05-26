@@ -13,26 +13,8 @@ import kta02.comm.ArduinoConnection;
  *
  * @author Roelof
  */
-public class RobotMover implements Runnable
+public class RobotMover extends RobotConfig implements Runnable
 {
-
-    private final int MOTOR_X = 1;
-    private final int MOTOR_Y = 2;
-    private final int MOTOR_Z = 1;
-    private final int MOTOR_BIN = 1;
-
-    private final int RESET_TIME_X = 12;
-    private final int RESET_TIME_Y = 8;
-    private final int RESET_TIME_Z = 2;
-
-    private final int STORAGE_COLS = 6;
-    private final int STORAGE_ROWS = 4;
-
-    private final int STATE_RETRIEVE = 1;
-    private final int STATE_EXTEND = 2;
-    private final int STATE_PICKUP = 3;
-    private final int STATE_RETRACT = 4;
-    private final int STATE_RESET = 5;
 
     private final Point MARKER_END = new Point(0, STORAGE_ROWS);
 
@@ -189,6 +171,12 @@ public class RobotMover implements Runnable
 
     }
 
+    /**
+     * Makes the code sleep for a while, while simultaneously catching the
+     * InterruptedException so you don't have to handle it.
+     *
+     * @param duration How long to sleep, in milliseconds
+     */
     private synchronized void sleep(long duration)
     {
         try
@@ -201,6 +189,13 @@ public class RobotMover implements Runnable
         }
     }
 
+    /**
+     * Checks the sensors in case something's changed. Used if there are sensors
+     * used in the robot. <strong>Do not use in combination with
+     * timing!</strong>
+     *
+     * @param conn Link with Arduino to check
+     */
     private synchronized void checkMotorLevels(ArduinoConnection conn)
     {
         if (currentState == STATE_RESET)
@@ -271,6 +266,12 @@ public class RobotMover implements Runnable
         }
     }
 
+    /**
+     * Completely stops an Arduino. Use this if you're moving the arduino down
+     *
+     * @param conn The connection to send the command
+     * @param motor
+     */
     private synchronized void doFullStop(ArduinoConnection conn, String motor)
     {
         conn.performAction(motor, ArduinoConnection.PARAM_MOTOR_FW1);
@@ -278,6 +279,15 @@ public class RobotMover implements Runnable
         conn.performAction(motor, ArduinoConnection.PARAM_MOTOR_STOP);
     }
 
+    /**
+     * Tells a motor to move at a certain velocity
+     *
+     * @param direction The motor to move, a char. Options:<ul><li>'x' -
+     * left/right</li><li>'y' - up/down</li><li>'z' - arm
+     * extend/retract</li><li>'b' - Bins forward/backward</li></ul>
+     * @param speed The direction to move, ranges between --1
+     * @return
+     */
     private synchronized boolean moveMotor(char direction, int speed)
     {
         String motor = null;
@@ -362,6 +372,12 @@ public class RobotMover implements Runnable
         return true;
     }
 
+    /**
+     * Pulls the next entry off the fetch queue and sets the
+     * <code>currentState</code> to <code>STATE_RETRIEVE</code>. If there are no
+     * more destinations to go to the <code>currentDestination</code> is set to
+     * <code>MARKER_END</code>.
+     */
     private synchronized void selectNextTarget()
     {
         if (fetchQueue.size() > 0)
@@ -374,6 +390,9 @@ public class RobotMover implements Runnable
         currentState = STATE_RETRIEVE;
     }
 
+    /**
+     * Starts a pickup, can only be called when not already picking stuff up.
+     */
     public void startPickup()
     {
         if (currentState == STATE_RETRIEVE)
@@ -382,6 +401,9 @@ public class RobotMover implements Runnable
         }
     }
 
+    /**
+     * Runner for the reset thread
+     */
     private synchronized void runResetThread()
     {
         if (currentState != STATE_RESET)
@@ -389,21 +411,17 @@ public class RobotMover implements Runnable
             return;
         }
 
-        System.err.println("Starting Z motor");
-
         moveMotor('z', -1);
         sleep(RESET_TIME_Z * 1000);
         moveMotor('z', 0);
 
         sleep(50);
-        System.err.println("Starting Y motor");
 
         moveMotor('y', 3);
         sleep(RESET_TIME_Y * 1000);
         moveMotor('y', 0);
 
         sleep(50);
-        System.err.println("Starting X motor");
 
         moveMotor('x', -3);
         sleep(RESET_TIME_X * 1000);
@@ -415,36 +433,59 @@ public class RobotMover implements Runnable
         Thread.currentThread().interrupt();
     }
 
+    /**
+     * Runs the thread for motor 1 (which moves X/Y and has DC power)
+     */
     private synchronized void runMotor1Thread()
     {
         checkMotorLevels(movementArduino);
+        /**
+         * Pickup action, tell the y motor to move up a little
+         */
         if (currentState == STATE_PICKUP)
         {
             moveMotor('y', 3);
-            sleep(700);
+            sleep(MOVE_Y_PICKUP);
             moveMotor('y', 0);
             currentState = STATE_RETRACT;
-        } else if (currentDestination == MARKER_END)
-        {
-            /// moveMotor('y', 3);
-            // moveMotor('x', -3);
+            return;
         }
+
+        /**
+         * Move to the drop-off point
+         */
+        if (currentDestination == MARKER_END)
+        {
+            /**
+             * @TODO
+             */
+            return;
+        }
+        /**
+         * Move to a certain position
+         */
+
+        //Goal: currentDestination
     }
 
+    /**
+     * Runs the thread for motor 2 (which moves the arm and the bins and has no
+     * DC power)
+     */
     private synchronized void runMotor2Thread()
     {
         checkMotorLevels(binPackingArduino);
         if (currentState == STATE_EXTEND)
         {
-            moveMotor('z', 1);
-            sleep(1000);
+            moveMotor('z', 3);
+            sleep(MOVE_Z_IN_DUR);
             moveMotor('z', 0);
 
             currentState = STATE_PICKUP;
         } else if (currentState == STATE_RETRACT)
         {
-            moveMotor('z', -1);
-            sleep(2000);
+            moveMotor('z', -3);
+            sleep(MOVE_Z_OUT_DUR);
             moveMotor('z', 0);
 
             currentState = STATE_RETRIEVE;

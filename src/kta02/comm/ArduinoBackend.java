@@ -323,10 +323,6 @@ public class ArduinoBackend implements SerialPortEventListener
         {
             return false;
         }
-        if (DEBUG)
-        {
-            System.out.println("Sending \"" + data + "\"...");
-        }
 
         try
         {

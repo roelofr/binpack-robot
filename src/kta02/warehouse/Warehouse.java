@@ -122,6 +122,9 @@ public class Warehouse implements Runnable
         mover.startPickup();
     }
 
+    /**
+     * Disconnect all Arduino's
+     */
     public synchronized void disconnectArduinos()
     {
         for (ArduinoConnection conn : arduinos)
@@ -132,6 +135,9 @@ public class Warehouse implements Runnable
 
     }
 
+    /**
+     * Connects to Arduino's
+     */
     public synchronized void connectToArduinos()
     {
         try
@@ -155,16 +161,25 @@ public class Warehouse implements Runnable
         }
 
         UI.setArduinos(arduinos);
-        recognizerThread.start();
+        if (!recognizerThread.isAlive())
+        {
+            recognizerThread.start();
+        }
 
     }
 
+    /**
+     * Makes the program reconnect
+     */
     public synchronized void reconnectToArduinos()
     {
         disconnectArduinos();
         connectToArduinos();
     }
 
+    /**
+     * Sets the look and feel to Windows-ish
+     */
     private void setLookAndFeel()
     {
 
@@ -189,9 +204,13 @@ public class Warehouse implements Runnable
         }
     }
 
+    /**
+     * Thread runner
+     */
     @Override
     public void run()
     {
+        // Continue untill interrupted
         while (!Thread.currentThread().isInterrupted())
         {
             if (arduinos == null)

@@ -220,8 +220,6 @@ public class ArduinoNode extends JPanel implements Runnable, MouseListener
     {
         ManualArduinoControl dialog = new ManualArduinoControl(comm, wh);
         dialog.setVisible(true);
-
-        dialog.setAlwaysOnTop(true);
     }
 
     @Override

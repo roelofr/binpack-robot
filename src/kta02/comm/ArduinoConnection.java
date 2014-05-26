@@ -102,6 +102,8 @@ public class ArduinoConnection extends ArduinoBackend implements Runnable
      */
     private char arduinoType;
 
+    private boolean hasPowerSupply = false;
+
     public ArduinoConnection(CommPortIdentifier portNumber) throws IOException
     {
         super(portNumber);
@@ -188,6 +190,16 @@ public class ArduinoConnection extends ArduinoBackend implements Runnable
      */
     public synchronized Boolean performAction(String action, String parameter)
     {
+        if (hasPowerSupply && (action.equals(ACTION_MOTOR1) || action.equals(ACTION_MOTOR2)))
+        {
+            if (parameter.equals(PARAM_MOTOR_FW1) || parameter.equals(PARAM_MOTOR_FW2) || parameter.equals(PARAM_MOTOR_FW3))
+            {
+                parameter = PARAM_MOTOR_FW1;
+            } else if (parameter.equals(PARAM_MOTOR_BW2) || parameter.equals(PARAM_MOTOR_BW3))
+            {
+                parameter = PARAM_MOTOR_BW1;
+            }
+        }
         String command = action + parameter;
         return write(command);
     }
@@ -273,6 +285,7 @@ public class ArduinoConnection extends ArduinoBackend implements Runnable
                     if (tempLast.length() > 1 && tempLast.charAt(0) == 'i')
                     {
                         arduinoType = tempLast.charAt(1);
+                        //hasPowerSupply = (arduinoType == TYPE_MOTOR);
                         break;
                     } else if (sentTime < new Date().getTime() - MAX_DELAY)
                     {
