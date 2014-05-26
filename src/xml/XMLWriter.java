@@ -32,22 +32,26 @@ public class XMLWriter
 
     public void writeXML(String fileName)
     {
-        //for loop met hoeveel pakbonnen er zijn.
-        //zoek volgorde van producten op en zit deze op pakbon.
+
+        //for(int i = 0; i < aantal pakbonnen; i++){
         try
         {
-
+            //Welke pakbon is dit? welke bin??
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
             Document doc = docBuilder.newDocument();
 
             Element rootElement = doc.createElement("pakbon");
             doc.appendChild(rootElement);
+
+            Element ordernummer = doc.createElement("ordernummer");
+            ordernummer.appendChild(doc.createTextNode(Integer.toString(bestellingObject.getBestelNummer())));
+            rootElement.appendChild(ordernummer);
+
             Element klant = doc.createElement("klant");
             rootElement.appendChild(klant);
 
-            Element voornaam;
-            voornaam = doc.createElement("voornaam");
+            Element voornaam = doc.createElement("voornaam");
             voornaam.appendChild(doc.createTextNode(klantObject.getVoornaam()));
             klant.appendChild(voornaam);
 
@@ -109,6 +113,7 @@ public class XMLWriter
         {
             tfe.printStackTrace();
         }
+        //}
     }
 
 }

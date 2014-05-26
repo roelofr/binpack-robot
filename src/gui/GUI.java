@@ -37,8 +37,9 @@ public class GUI extends JFrame implements ActionListener
         // Create the JFileChooser
         file = new JFileChooser(new File(filePath));
         file.addActionListener(this);
-        file.setApproveButtonText("Run AS/RS!");
+        file.setApproveButtonText("Process Order");
         file.setFileFilter(new FileNameExtensionFilter("XML Files", "xml"));
+        file.setAcceptAllFileFilterUsed(false);
 
         debugBTN = new JCheckBox();
         debugTXT = new JLabel("Debug?");

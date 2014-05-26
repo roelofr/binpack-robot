@@ -47,6 +47,15 @@ public class DatabaseProcessor
                 artikel.setBeschrijving(desc);
 
             }
+            // Step 3, get the size
+            rs = DatabaseQueryCollector.getInstance().getSize(artikelNr);
+
+            while (rs.next())
+            {
+                int size = rs.getInt("Size");
+
+                artikel.setSize(size);
+            }
         }
 
         return artikelen;
