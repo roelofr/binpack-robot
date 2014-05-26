@@ -73,7 +73,7 @@ public class MainGUI extends JFrame
         connectedDevices = new ArduinoList(wh);
         add(connectedDevices, BorderLayout.WEST);
 
-        statusPanel = new CurrentStatusPanel();
+        statusPanel = new CurrentStatusPanel(wh);
         screenContent.add(statusPanel, BorderLayout.CENTER);
 
         setVisible(true);

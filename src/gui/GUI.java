@@ -8,8 +8,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import kta02.warehouse.Warehouse;
 
 public class GUI extends JFrame implements ActionListener
 {
@@ -64,22 +64,26 @@ public class GUI extends JFrame implements ActionListener
                 {
                     throw new NullPointerException("File doesn't exist");
                 }
-                Warehouse.setXMLFile(currentFile);
 
-                if (debugBTN.isSelected())
-                {
-                    Warehouse.getBestelling().print();
-                }
-                DatabaseProcessor dbProcessor = new DatabaseProcessor(bestelling);
+                JOptionPane.showMessageDialog(this, "Not implemented");
+                return;
+                /*
+                 Warehouse.setXMLFile(currentFile);
 
-                try
-                {
-                    ArrayList<PackageLocation> cake = dbProcessor.processArticles();
-                    System.out.println(cake);
-                } catch (SQLException ex)
-                {
-                    System.err.println(ex.getMessage());
-                }
+                 if (debugBTN.isSelected())
+                 {
+                 Warehouse.getBestelling().print();
+                 }
+                 DatabaseProcessor dbProcessor = new DatabaseProcessor(bestelling);
+
+                 try
+                 {
+                 ArrayList<PackageLocation> cake = dbProcessor.processArticles();
+                 System.out.println(cake);
+                 } catch (SQLException ex)
+                 {
+                 System.err.println(ex.getMessage());
+                 }*/
 
             } else if (ae.getActionCommand() == JFileChooser.CANCEL_SELECTION)
             {

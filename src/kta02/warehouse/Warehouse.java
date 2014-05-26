@@ -3,7 +3,6 @@ package kta02.warehouse;
 import database.DatabaseConnection;
 import database.DatabaseProcessor;
 import java.awt.Point;
-import gui.GUI;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -12,11 +11,11 @@ import javax.swing.UnsupportedLookAndFeelException;
 import kta02.comm.ArduinoConnection;
 import kta02.comm.InsufficientDevicesException;
 import kta02.comm.SerialCommunicator;
-import kta02.gui.EmergencyPanel;
-import kta02.gui.MainGUI;
 import kta02.domein.Artikel;
 import kta02.domein.Bestelling;
 import kta02.domein.Klant;
+import kta02.gui.EmergencyPanel;
+import kta02.gui.MainGUI;
 import kta02.xml.XMLWriter;
 import xml.XMLReader;
 
@@ -26,12 +25,12 @@ import xml.XMLReader;
  */
 public class Warehouse implements Runnable
 {
-	
+
     static XMLReader reader;
     static Bestelling bestelling;
 
     static DatabaseProcessor dbProcessor;
-    
+
     public static final boolean DEBUG = true;
 
     private static Warehouse warehouse;
@@ -177,7 +176,7 @@ public class Warehouse implements Runnable
         if (!recognizerThread.isAlive())
         {
             recognizerThread.start();
-    }
+        }
 
     }
 
@@ -214,7 +213,7 @@ public class Warehouse implements Runnable
         } catch (InterruptedException ex)
         {
             // No, not gonna do anything
-    }
+        }
     }
 
     /**
@@ -232,7 +231,7 @@ public class Warehouse implements Runnable
                 System.err.println("No Arduinos yet, waiting 5 seconds");
                 sleep(5000);
                 continue;
-    }
+            }
 
             if (arduinos.size() < 2)
             {
@@ -258,7 +257,7 @@ public class Warehouse implements Runnable
         }
     }
 
-    public static void setXMLFile(File file)
+    public void setXMLFile(File file)
     {
         reader = new XMLReader(file.getPath());
 
@@ -275,8 +274,7 @@ public class Warehouse implements Runnable
                 System.out.println(artikel);
             }
             System.out.println("__________________________________________________________________");
-        }
-        catch (SQLException ex)
+        } catch (SQLException ex)
         {
             System.err.println(ex.getMessage());
         }
