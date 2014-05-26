@@ -281,13 +281,19 @@ public class Warehouse implements Runnable
             System.err.println(ex.getMessage());
         }
 
+        //als er meer dan 1 pakbon is, zorg dan dat de order met meerdere pakbonnen gemaakt zijn!
+        //for(int i = 0; i < aantalpakbonnen; i++){
         String bestandsNaam = "";
         String volledigeKlantNaam = bestelling.getKlant().getVoornaam() + " " + bestelling.getKlant().getAchternaam();
-        bestandsNaam += bestelling.getBestelNummer() + ". " + volledigeKlantNaam;
+        bestandsNaam += bestelling.getBestelNummer() + ". " + volledigeKlantNaam /* + " - " + i */; //Zorg voor andere naam voor pakbon!
         bestandsNaam += ".xml";
 
         new XMLWriter(bestelling).writeXML(bestandsNaam);
+        //}
 
+        //TEST FOR ALGORITHM
+        //REMOVE WHEN DONE
+        //ArrayList<Integer> orderSorting = Algoritm.tourImprovement(bestelling.getArtikelen(), 0, 0);
     }
 
     public static DatabaseProcessor getDbProcessor()

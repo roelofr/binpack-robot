@@ -12,12 +12,25 @@ public class Artikel
     String beschrijving;
     int artikelnr;
     Point locatie;
+    int size;
 
     public Artikel(int artikelnr)
     {
         beschrijving = "";
         locatie = new Point(0, 0);
         this.artikelnr = artikelnr;
+        size = 0;
+
+    }
+
+    public int getSize()
+    {
+        return size;
+    }
+
+    public void setSize(int size)
+    {
+        this.size = size;
     }
 
     public int getArtikelnr()
@@ -47,7 +60,7 @@ public class Artikel
 
     public String toString()
     {
-        return "Artikelnummer: " + artikelnr + " is een " + beschrijving + ". Locatie: " + locatie.getX() + " X, " + locatie.getY() + " Y";
+        return "Artikelnummer: " + artikelnr + " is een " + beschrijving + ". Locatie: " + locatie.getX() + " X, " + locatie.getY() + " Y . Grootte: " + size;
     }
 
 }

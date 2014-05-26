@@ -49,7 +49,7 @@ public class DatabaseQueryCollector
             statement = dbConn.createStatement();
             rs = statement.executeQuery("SELECT posX,posY "
                     + "FROM Cell "
-                    + "WHERE id = ( SELECT `cell_id` FROM `Item` WHERE `artikel_id` = '" + artikel + "' )");
+                    + "WHERE id = ( SELECT `cell_id` FROM `Item` WHERE `artikel_id` = '" + artikel + "')");
 
         }
         catch (SQLException e)
@@ -69,6 +69,27 @@ public class DatabaseQueryCollector
         {
             statement = dbConn.createStatement();
             rs = statement.executeQuery("SELECT description "
+                    + "FROM Artikel "
+                    + "WHERE id = '" + artikel + "'"
+            );
+
+        }
+        catch (SQLException e)
+        {
+            throw e;
+        }
+        return rs;
+    }
+
+    public ResultSet getSize(int artikel) throws SQLException
+    {
+        ResultSet rs;
+        Statement statement;
+
+        try
+        {
+            statement = dbConn.createStatement();
+            rs = statement.executeQuery("SELECT size "
                     + "FROM Artikel "
                     + "WHERE id = '" + artikel + "'"
             );

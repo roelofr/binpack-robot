@@ -64,7 +64,7 @@ public class Bestelling
         return klant;
     }
 
-    public void print()
+    public void print() //Debugging!
     {
         Bestelling bestelling = this;
         System.out.println("Het ordernummer is " + bestelling.getBestelNummer());
