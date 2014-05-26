@@ -14,6 +14,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import kta02.warehouse.Warehouse;
 
 /**
  *
@@ -32,7 +33,7 @@ public class CurrentStatusPanel extends JPanel
     CurrentOrder order;
     RobotDisplay status;
 
-    public CurrentStatusPanel()
+    public CurrentStatusPanel(Warehouse warehouse)
     {
         setLayout(new BorderLayout());
         setBackground(Color.white);
@@ -44,7 +45,7 @@ public class CurrentStatusPanel extends JPanel
         JPanel twoColumn = new JPanel(new GridLayout(1, 2));
         add(twoColumn, BorderLayout.CENTER);
 
-        order = new CurrentOrder();
+        order = new CurrentOrder(warehouse);
         twoColumn.add(order);
 
         products = new ArrayList<>();
