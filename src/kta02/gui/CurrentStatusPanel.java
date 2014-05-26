@@ -30,6 +30,7 @@ public class CurrentStatusPanel extends JPanel
     ArrayList<String> products;
 
     CurrentOrder order;
+    RobotDisplay status;
 
     public CurrentStatusPanel()
     {
@@ -48,9 +49,8 @@ public class CurrentStatusPanel extends JPanel
 
         products = new ArrayList<>();
 
-        JPanel tmp = new JPanel();
-        tmp.setBackground(new Color(255, 200, 200));
-        twoColumn.add(tmp);
+        status = new RobotDisplay();
+        twoColumn.add(status);
     }
 
 }
