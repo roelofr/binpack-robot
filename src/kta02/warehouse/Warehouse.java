@@ -5,7 +5,6 @@ import java.awt.Point;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import javax.swing.JOptionPane;
 import java.util.Date;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -17,6 +16,7 @@ import kta02.comm.DatabaseProcessor;
 import kta02.comm.DatabaseQueryCollector;
 import kta02.comm.InsufficientDevicesException;
 import kta02.comm.SerialCommunicator;
+import kta02.domein.Artikel;
 import kta02.domein.Bestelling;
 import kta02.domein.Klant;
 import kta02.easteregg.EasterEggKeyListener;
@@ -350,20 +350,47 @@ public class Warehouse implements Runnable
         try
         {
             dbProcessor.processArticles();
+            System.out.println("__________________________________________________________________");
+            for (Artikel artikel : bestelling.getArtikelen())
+            {
+                System.out.println(artikel);
+            }
+            System.out.println("__________________________________________________________________");
         } catch (SQLException ex)
         {
             System.err.println(ex.getMessage());
         }
         //als er meer dan 1 pakbon is, zorg dan dat de order met meerdere pakbonnen gemaakt zijn!
-        if(bestelling.getArtikelen().size() < 5){
-            ArrayList<Integer> idOrder = Algoritm.tourImprovement(bestelling.getArtikelen(),0,0);
-            for(int i = 0; i < BestFit.BestFit(bestelling, idOrder).size(); i++){
+        if (bestelling.getArtikelen().size() < 5)
+        {
+            ArrayList<Integer> idOrder = Algoritm.tourImprovement(bestelling.getArtikelen(), 0, 0);
+            for (int i = 0; i < BestFit.BestFit(bestelling, idOrder).size(); i++)
+            {
                 String bestandsNaam = "";
                 String volledigeKlantNaam = bestelling.getKlant().getVoornaam() + " " + bestelling.getKlant().getAchternaam();
-                bestandsNaam += bestelling.getBestelNummer() + ". " + volledigeKlantNaam  + " - " + i;
+                bestandsNaam += bestelling.getBestelNummer() + ". " + volledigeKlantNaam + " - " + i;
                 bestandsNaam += ".xml";
 
-        new XMLWriter(bestelling).writeXML(bestandsNaam);
+                new XMLWriter(bestelling, i).writeXML(bestandsNaam);
+            }
+
+            ArrayList<Point> positions = new ArrayList<>();
+            for (int q = 0; q < idOrder.size(); q++)
+            {
+                positions.add(new Point(bestelling.getArtikelen().get(idOrder.get(q)).getLocatie()));
+
+            }
+
+            for (int q = 0; q < positions.size(); q++)
+            {
+                System.out.println("******");
+                System.out.println(positions.get(q).x + ", " + positions.get(q).y);
+            }
+        } else
+        {
+            JOptionPane.showMessageDialog(emPanel, "Maximaal aantal producten is 5.", "Product amount Error", JOptionPane.ERROR_MESSAGE);
+            System.out.println("Haal een aantal artikelen uit de XML file weg.");
+        }
 
         UI.toggleInterface(true);
     }
