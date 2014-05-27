@@ -84,10 +84,10 @@ public abstract class RobotConfig
     protected final int STORAGE_COLS = 6;
     protected final int STORAGE_ROWS = 4;
 
-    protected final int STATE_RETRIEVE = 1;
-    protected final int STATE_EXTEND = 2;
-    protected final int STATE_PICKUP = 3;
-    protected final int STATE_RETRACT = 4;
-    protected final int STATE_RESET = 5;
-    protected final int STATE_DEPOSIT = 6;
+    public static final int STATE_RETRIEVE = 1;
+    public static final int STATE_EXTEND = 2;
+    public static final int STATE_PICKUP = 3;
+    public static final int STATE_RETRACT = 4;
+    public static final int STATE_RESET = 5;
+    public static final int STATE_DEPOSIT = 6;
 }
