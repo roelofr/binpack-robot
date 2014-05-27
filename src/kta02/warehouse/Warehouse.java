@@ -1,22 +1,28 @@
 package kta02.warehouse;
 
-import database.DatabaseConnection;
-import database.DatabaseProcessor;
+import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import kta02.comm.ArduinoConnection;
+import kta02.comm.DatabaseConnection;
+import kta02.comm.DatabaseProcessor;
+import kta02.comm.DatabaseQueryCollector;
 import kta02.comm.InsufficientDevicesException;
 import kta02.comm.SerialCommunicator;
 import kta02.domein.Bestelling;
 import kta02.domein.Klant;
+import kta02.easteregg.EasterEggKeyListener;
 import kta02.gui.EmergencyPanel;
+import kta02.gui.LoadingDialog;
 import kta02.gui.MainGUI;
+import kta02.xml.XMLReader;
 import kta02.xml.XMLWriter;
-import xml.XMLReader;
 
 /**
  *
@@ -24,6 +30,8 @@ import xml.XMLReader;
  */
 public class Warehouse implements Runnable
 {
+
+    private final long DB_KEEP_ALIVE = 30 * 1000;
 
     private XMLReader reader;
 
@@ -45,6 +53,10 @@ public class Warehouse implements Runnable
 
     private EmergencyPanel emPanel;
 
+    private EasterEggKeyListener keyListener;
+
+    private long lastKeepAlive = 0;
+
     public static void main(String[] args)
     {
         warehouse = new Warehouse();
@@ -61,19 +73,67 @@ public class Warehouse implements Runnable
 
         System.out.println("KTA02");
         System.out.println("Bin-Packing Problem Simulator");
-        DatabaseConnection dbCon = new DatabaseConnection();
-        try
+
+        connectToDatabase();
+        recognizerThread = new Thread(this);
+    }
+
+    private void linkKeyInput()
+    {
+        if (keyListener != null)
         {
-            dbCon.linkToQueryCollector();
-        } catch (SQLException ex)
-        {
-            System.err.println(ex.getMessage());
+            return;
         }
 
-        recognizerThread = new Thread(this);
+        keyListener = new EasterEggKeyListener(this);
+        KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        kfm.addKeyEventDispatcher(keyListener);
+    }
 
-        // Connect to the Arduino's
-        connectToArduinos();
+    private void connectToDatabase()
+    {
+        new Thread(new Runnable()
+        {
+
+            private void sleep(long delay)
+            {
+                try
+                {
+                    Thread.sleep(delay);
+                } catch (Exception e)
+                {
+
+                }
+            }
+
+            @Override
+            public void run()
+            {
+                LoadingDialog dialog = new LoadingDialog("Verbinden met database...");
+                sleep(100);
+                DatabaseConnection dbCon = new DatabaseConnection();
+                try
+                {
+                    dbCon.linkToQueryCollector();
+                } catch (SQLException ex)
+                {
+                    UI.dispose();
+                    dialog.dispose();
+                    JOptionPane.showMessageDialog(null, "Er kon geen verbinding met de database gemaakt worden!\nDe applicatie zal nu afsluiten.", "Databaseverbinding fout!", JOptionPane.WARNING_MESSAGE);
+                    System.exit(1);
+                    return;
+                }
+                dialog.dispose();
+                UI.setVisible(true);
+                if (!recognizerThread.isAlive())
+                {
+                    recognizerThread.start();
+                }
+                linkKeyInput();
+                connectToArduinos();
+            }
+        }).start();
+
     }
 
     /**
@@ -188,10 +248,6 @@ public class Warehouse implements Runnable
         }
 
         UI.setArduinos(arduinos);
-        if (!recognizerThread.isAlive())
-        {
-            recognizerThread.start();
-        }
 
     }
 
@@ -240,6 +296,12 @@ public class Warehouse implements Runnable
         // Continue untill interrupted
         while (!Thread.currentThread().isInterrupted())
         {
+            if (lastKeepAlive < new Date().getTime())
+            {
+                lastKeepAlive = new Date().getTime() + DB_KEEP_ALIVE;
+                DatabaseQueryCollector.getInstance().sendKeepAlive();
+            }
+
             if (arduinos == null)
             {
                 sleep(5000);

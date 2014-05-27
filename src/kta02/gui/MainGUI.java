@@ -11,7 +11,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
-import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -20,7 +19,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import kta02.comm.ArduinoConnection;
-import kta02.easteregg.EasterEggKeyListener;
 import kta02.warehouse.Warehouse;
 
 /**
@@ -78,12 +76,6 @@ public class MainGUI extends JFrame
 
         connectedDevices = new ArduinoList(wh);
         add(connectedDevices, BorderLayout.WEST);
-
-        setVisible(true);
-
-        EasterEggKeyListener listener = new EasterEggKeyListener();
-        KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-        kfm.addKeyEventDispatcher(listener);
 
         toggleInterface(false, true);
 

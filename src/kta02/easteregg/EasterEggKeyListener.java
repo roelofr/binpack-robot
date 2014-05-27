@@ -8,6 +8,7 @@ package kta02.easteregg;
 import java.awt.KeyEventDispatcher;
 import java.awt.event.KeyEvent;
 import java.util.Date;
+import kta02.warehouse.Warehouse;
 
 /**
  *
@@ -18,17 +19,22 @@ public class EasterEggKeyListener implements KeyEventDispatcher
 
     private static final long PRESS_BUFFER = 150;
 
-    int at;
+    private static final int EMERGENCY_STOP = KeyEvent.VK_DELETE;
 
-    int easterEggCode[];
-    char easterEggChar[];
+    final int easterEggCode[];
+    final char easterEggChar[];
+
+    int at;
 
     long last;
 
     EasterEgg openWindow;
+    Warehouse wh;
 
-    public EasterEggKeyListener()
+    public EasterEggKeyListener(Warehouse wh)
     {
+        this.wh = wh;
+
         at = 0;
         last = -1;
 
@@ -118,6 +124,11 @@ public class EasterEggKeyListener implements KeyEventDispatcher
         }
 
         isNext(keyCode, keyChar);
+
+        if (keyCode == EMERGENCY_STOP)
+        {
+            wh.emergency();
+        }
         return true;
     }
 

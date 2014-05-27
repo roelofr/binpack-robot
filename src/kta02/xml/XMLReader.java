@@ -1,4 +1,4 @@
-package xml;
+package kta02.xml;
 
 import java.io.File;
 import javax.swing.text.BadLocationException;
