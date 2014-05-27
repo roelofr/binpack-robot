@@ -6,8 +6,10 @@ import java.awt.Point;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import kta02.binpackage.BestFit;
 import kta02.comm.ArduinoConnection;
 import kta02.comm.InsufficientDevicesException;
 import kta02.comm.SerialCommunicator;
@@ -16,6 +18,7 @@ import kta02.domein.Bestelling;
 import kta02.domein.Klant;
 import kta02.gui.EmergencyPanel;
 import kta02.gui.MainGUI;
+import kta02.tsp.Algoritm;
 import kta02.xml.XMLWriter;
 import xml.XMLReader;
 
@@ -278,20 +281,23 @@ public class Warehouse implements Runnable
         {
             System.err.println(ex.getMessage());
         }
-
         //als er meer dan 1 pakbon is, zorg dan dat de order met meerdere pakbonnen gemaakt zijn!
-        //for(int i = 0; i < aantalpakbonnen; i++){
-        String bestandsNaam = "";
-        String volledigeKlantNaam = bestelling.getKlant().getVoornaam() + " " + bestelling.getKlant().getAchternaam();
-        bestandsNaam += bestelling.getBestelNummer() + ". " + volledigeKlantNaam /* + " - " + i */; //Zorg voor andere naam voor pakbon!
-        bestandsNaam += ".xml";
+        if(bestelling.getArtikelen().size() < 6){
+            for(int i = 0; i < BestFit.BestFit(bestelling, Algoritm.tourImprovement(bestelling.getArtikelen(), 0, 0)).size(); i++){
+                String bestandsNaam = "";
+                String volledigeKlantNaam = bestelling.getKlant().getVoornaam() + " " + bestelling.getKlant().getAchternaam();
+                bestandsNaam += bestelling.getBestelNummer() + ". " + volledigeKlantNaam  + " - " + i;
+                bestandsNaam += ".xml";
 
-        new XMLWriter(bestelling).writeXML(bestandsNaam);
-        //}
+                new XMLWriter(bestelling, i).writeXML(bestandsNaam);
+            }
+       }else{
+            JOptionPane.showMessageDialog(emPanel, "Maximaal aantal producten is 5.", "Product amount Error", JOptionPane.ERROR_MESSAGE);
+            System.out.println("Haal een aantal artikelen uit de XML file weg.");
+       }
 
         //TEST FOR ALGORITHM
         //REMOVE WHEN DONE
-        //ArrayList<Integer> orderSorting = Algoritm.tourImprovement(bestelling.getArtikelen(), 0, 0);
     }
 
     public static DatabaseProcessor getDbProcessor()
