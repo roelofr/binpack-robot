@@ -1,15 +1,21 @@
 package gui;
 
+import database.DatabaseProcessor;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import kta02.domein.Artikel;
+import kta02.domein.PackageLocation;
+import kta02.warehouse.Warehouse;
 
 public class GUI extends JFrame implements ActionListener
 {
@@ -78,7 +84,7 @@ public class GUI extends JFrame implements ActionListener
 
                  try
                  {
-                 ArrayList<PackageLocation> cake = dbProcessor.processArticles();
+                    ArrayList<Artikel> cake = dbProcessor.processArticles();
                  System.out.println(cake);
                  } catch (SQLException ex)
                  {

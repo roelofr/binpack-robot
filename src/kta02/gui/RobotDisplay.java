@@ -13,6 +13,7 @@ import java.awt.Point;
 import javax.swing.JPanel;
 import kta02.domein.Artikel;
 import kta02.domein.Bestelling;
+import kta02.domein.Bestelling;
 import kta02.warehouse.Warehouse;
 
 /**
@@ -21,7 +22,6 @@ import kta02.warehouse.Warehouse;
  */
 public class RobotDisplay extends JPanel
 {
-
     Bestelling order;
 
     public RobotDisplay()
@@ -70,7 +70,6 @@ public class RobotDisplay extends JPanel
             p = item.getLocatie();
             this.paintItem(p.x, p.y, 15, g, Color.magenta);
         }
-    }
 
     public void paintConnection(int x1, int y1, int x2, int y2, Graphics g, Color color)
     {

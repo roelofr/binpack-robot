@@ -11,6 +11,9 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import kta02.domein.Artikel;
+import kta02.domein.Bestelling;
+import kta02.domein.PackageLocation;
 import kta02.warehouse.Warehouse;
 
 public class XMLPicker extends JDialog implements ActionListener
@@ -70,6 +73,23 @@ public class XMLPicker extends JDialog implements ActionListener
                 warehouse.setXMLFile(currentFile);
                 this.setVisible(false);
                 this.dispose();
+
+                Bestelling bestelling = reader.readFromXml();
+
+                if (Warehouse.DEBUG)
+                {
+                    bestelling.print();
+                }
+                DatabaseProcessor dbProcessor = new DatabaseProcessor(bestelling);
+
+                try
+                {
+                    ArrayList<Artikel> cake = dbProcessor.processArticles();
+                    System.out.println(cake);
+                } catch (SQLException ex)
+                {
+                    System.err.println(ex.getMessage());
+                }
 
             } else if (ae.getActionCommand().equals(JFileChooser.CANCEL_SELECTION))
             {
