@@ -12,6 +12,7 @@ import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import kta02.domein.Artikel;
 import kta02.domein.Bestelling;
 import kta02.domein.PackageLocation;
 import kta02.warehouse.Warehouse;
@@ -73,7 +74,7 @@ public class XMLPicker extends JDialog implements ActionListener
 
                 try
                 {
-                    ArrayList<PackageLocation> cake = dbProcessor.processArticles();
+                    ArrayList<Artikel> cake = dbProcessor.processArticles();
                     System.out.println(cake);
                 } catch (SQLException ex)
                 {

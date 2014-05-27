@@ -10,13 +10,13 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import javax.swing.JPanel;
+import kta02.domein.Bestelling;
 
 /**
  *
  * @author Solid
  */
 public class RobotDisplay extends JPanel {
-
     public RobotDisplay() {
         this.setPreferredSize(new Dimension(500, 400));
         this.setLayout(new FlowLayout());
@@ -40,9 +40,9 @@ public class RobotDisplay extends JPanel {
                 this.paintItem(x, y, 15, g, Color.lightGray);
             }
         }
-        for (int x = 0; x < array.size(); x++) {
-            this.paintItem(x, y, 15, g, Color.lightGray);
-        }
+        //for (int x = 0; x < bestelling.getArtikelen().size(); x++) {
+        //    this.paintItem(bestelling.getArtikelen().get(x).getLocatie().x, bestelling.getArtikelen().get(x).getLocatie().y, 15, g, Color.red);
+        //}
     }
 
     public void paintConnection(int x1, int y1, int x2, int y2, Graphics g, Color color) {
