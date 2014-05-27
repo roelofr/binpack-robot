@@ -32,7 +32,7 @@ public class EmergencyPanel extends JFrame implements ActionListener
     public EmergencyPanel(Warehouse wh)
     {
         warehouse = wh;
-        setTitle("Emergency stop");
+        setTitle("Noodstop");
         setAlwaysOnTop(true);
         setType(Type.UTILITY);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
