@@ -74,23 +74,6 @@ public class XMLPicker extends JDialog implements ActionListener
                 this.setVisible(false);
                 this.dispose();
 
-                Bestelling bestelling = reader.readFromXml();
-
-                if (Warehouse.DEBUG)
-                {
-                    bestelling.print();
-                }
-                DatabaseProcessor dbProcessor = new DatabaseProcessor(bestelling);
-
-                try
-                {
-                    ArrayList<Artikel> cake = dbProcessor.processArticles();
-                    System.out.println(cake);
-                } catch (SQLException ex)
-                {
-                    System.err.println(ex.getMessage());
-                }
-
             } else if (ae.getActionCommand().equals(JFileChooser.CANCEL_SELECTION))
             {
                 this.setVisible(false);

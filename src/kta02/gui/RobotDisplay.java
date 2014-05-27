@@ -70,6 +70,7 @@ public class RobotDisplay extends JPanel
             p = item.getLocatie();
             this.paintItem(p.x, p.y, 15, g, Color.magenta);
         }
+    }
 
     public void paintConnection(int x1, int y1, int x2, int y2, Graphics g, Color color)
     {
