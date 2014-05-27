@@ -1,82 +1,97 @@
 package kta02.gui;
 
-import java.awt.BorderLayout;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import javax.swing.JCheckBox;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import kta02.warehouse.Warehouse;
 
-public class XMLPicker extends JDialog implements ActionListener
+/**
+ *
+ * @author Roelof
+ */
+public final class XMLPicker extends JFileChooser
 {
 
-    private JFileChooser file;
-    private JCheckBox debugBTN;
-    private JLabel debugTXT;
-
-    private Warehouse warehouse;
-
-    public XMLPicker(Warehouse warehouse)
+    public static void createPickerAndLoader(final Warehouse warehouse, final MainGUI mainGUI)
     {
-        this.warehouse = warehouse;
-
-        setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        setSize(500, 500);
-        setTitle("Openen");
-        setLayout(new BorderLayout(0, 0));
-        setLocationRelativeTo(null);
-        setVisible(true);
-
-        File myDocuments = new JFileChooser().getFileSystemView().getDefaultDirectory();
-
-        // Create the JFileChooser
-        file = new JFileChooser(myDocuments);
-        file.addActionListener(this);
-        file.setApproveButtonText("Openen");
-        file.setDialogType(JFileChooser.OPEN_DIALOG);
-        file.setFileFilter(new FileNameExtensionFilter("XML Files", "xml"));
-
-        JLabel selectFile = new JLabel();
-        selectFile.setText("Selecteer een order (XML bestand)");
-        selectFile.setFont(new Font("Arial", Font.BOLD, 16));
-
-        add(selectFile, BorderLayout.NORTH);
-        add(file, BorderLayout.CENTER);
-        setVisible(true);
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent ae)
-    {
-
-        if (ae.getSource() == file)
+        new Thread(new Runnable()
         {
-            if (ae.getActionCommand().equals(JFileChooser.APPROVE_SELECTION))
+            private void sleep(long time)
             {
-                File currentFile = file.getSelectedFile();
-
-                if (!currentFile.exists())
+                try
                 {
-                    JOptionPane.showMessageDialog(this, "Het geselecteerde bestand kon niet worden gevonden!", "Bestand niet gevonden", JOptionPane.ERROR_MESSAGE);
-                    return;
+                    Thread.sleep(time);
+                } catch (InterruptedException e)
+                {
+
                 }
-
-                warehouse.setXMLFile(currentFile);
-                this.setVisible(false);
-                this.dispose();
-
-            } else if (ae.getActionCommand().equals(JFileChooser.CANCEL_SELECTION))
-            {
-                this.setVisible(false);
-                this.dispose();
             }
 
+            @Override
+            public void run()
+            {
+                LoadingDialog ld = new LoadingDialog("Bestandenlijst laden...");
+                sleep(100);
+                XMLPicker pick = new XMLPicker(warehouse, mainGUI);
+                sleep(100);
+                ld.dispose();
+                pick.openDialog();
+            }
+        }).start();
+    }
+
+    private JFileChooser fileChooser;
+
+    private final Warehouse warehouse;
+    private final MainGUI mainGUI;
+
+    private final XMLPicker thisInstance = this;
+
+    public XMLPicker(Warehouse warehouse, MainGUI mainGUI)
+    {
+        super();
+
+        this.warehouse = warehouse;
+        this.mainGUI = mainGUI;
+
+    }
+
+    public void openDialog()
+    {
+        setFileFilter(new FileNameExtensionFilter("XML Bestanden", "xml"));
+        //setAcceptAllFileFilterUsed(false);
+        //setFileSelectionMode(JFileChooser.FILES_ONLY);
+        addActionListener(new PickerListener());
+        showOpenDialog(mainGUI);
+    }
+
+    class PickerListener implements ActionListener
+    {
+
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+            if (e.getActionCommand() == JFileChooser.APPROVE_SELECTION)
+            {
+                File currentFile = getSelectedFile();
+                if (currentFile == null)
+                {
+                    return;
+                }
+                String extension = "";
+                int i = currentFile.getName().lastIndexOf('.');
+                if (i > 0)
+                {
+                    extension = currentFile.getName().substring(i + 1);
+                }
+                if (!currentFile.exists() || !extension.toLowerCase().equals("xml"))
+                {
+                    return;
+                }
+                warehouse.setXMLFile(currentFile);
+            }
         }
 
     }

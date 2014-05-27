@@ -65,7 +65,7 @@ public class CurrentOrder extends JPanel
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            XMLPicker picker = new XMLPicker(wh);
+            XMLPicker.createPickerAndLoader(wh, wh.getMainGUI());
         }
 
     }

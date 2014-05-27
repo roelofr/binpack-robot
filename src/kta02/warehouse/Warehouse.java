@@ -26,10 +26,11 @@ import xml.XMLReader;
 public class Warehouse implements Runnable
 {
 
-    static XMLReader reader;
-    static Bestelling bestelling;
+    private XMLReader reader;
 
-    static DatabaseProcessor dbProcessor;
+    private Bestelling bestelling;
+
+    private DatabaseProcessor dbProcessor;
 
     public static final boolean DEBUG = true;
 
@@ -48,54 +49,6 @@ public class Warehouse implements Runnable
     public static void main(String[] args)
     {
         warehouse = new Warehouse();
-    }
-
-    /**
-     * Forces all systems to stop, on all arduinos
-     */
-    public static void emergency()
-    {
-        warehouse.emergencyStop();
-    }
-
-    public void emergencyStop()
-    {
-        int i = 0;
-        while (i < 4)
-        {
-            for (ArduinoConnection conn : arduinos)
-            {
-                conn.setEmergencyFlag(true);
-            }
-            sleep(30);
-            i++;
-        }
-
-        if (emPanel != null && emPanel.isVisible())
-        {
-            return;
-        }
-
-        emPanel = new EmergencyPanel(this);
-    }
-
-    public void restoreSystems()
-    {
-        int i = 0;
-        while (i < 4)
-        {
-            for (ArduinoConnection conn : arduinos)
-            {
-                conn.setEmergencyFlag(false);
-            }
-            sleep(30);
-            i++;
-        }
-
-        if (emPanel != null && emPanel.isVisible())
-        {
-            emPanel.dispose();
-        }
     }
 
     private Warehouse()
@@ -124,11 +77,74 @@ public class Warehouse implements Runnable
         connectToArduinos();
     }
 
+    /**
+     * Forces all systems to stop, on all arduinos
+     */
+    public static void emergency()
+    {
+        warehouse.emergencyStop();
+    }
+
+    /**
+     * Immediately stops all Arduino's
+     */
+    public void emergencyStop()
+    {
+        int i = 0;
+        while (i < 4)
+        {
+            for (ArduinoConnection conn : arduinos)
+            {
+                conn.setEmergencyFlag(true);
+            }
+            sleep(30);
+            i++;
+        }
+
+        if (emPanel != null && emPanel.isVisible())
+        {
+            return;
+        }
+
+        emPanel = new EmergencyPanel(this);
+    }
+
+    /**
+     * Restores the emergency state of the Arduino's so they can be controlled
+     * again
+     */
+    public void restoreSystems()
+    {
+        int i = 0;
+        while (i < 4)
+        {
+            for (ArduinoConnection conn : arduinos)
+            {
+                conn.setEmergencyFlag(false);
+            }
+            sleep(30);
+            i++;
+        }
+
+        if (emPanel != null && emPanel.isVisible())
+        {
+            emPanel.dispose();
+        }
+    }
+
+    /**
+     * Adds a Point to the fetch queue of the robot mover
+     *
+     * @param target
+     */
     public void addPointToFetchQueue(Point target)
     {
         mover.addToFetchQueue(target);
     }
 
+    /**
+     * Starts the pickup process, there is usually no need to call this.
+     */
     public void startPickup()
     {
         mover.startPickup();
@@ -227,15 +243,12 @@ public class Warehouse implements Runnable
         {
             if (arduinos == null)
             {
-
-                System.err.println("No Arduinos yet, waiting 5 seconds");
                 sleep(5000);
                 continue;
             }
 
             if (arduinos.size() < 2)
             {
-                System.err.println("Not enough arduinos for recognizer, waiting 5 seconds.");
                 sleep(5000);
                 continue;
             }
@@ -257,6 +270,11 @@ public class Warehouse implements Runnable
         }
     }
 
+    /**
+     * Sets the XML file, called from <code>kta02.gui.XMLPicker</code>.
+     *
+     * @param file
+     */
     public void setXMLFile(File file)
     {
         reader = new XMLReader(file.getPath());
@@ -294,19 +312,29 @@ public class Warehouse implements Runnable
         //ArrayList<Integer> orderSorting = Algoritm.tourImprovement(bestelling.getArtikelen(), 0, 0);
     }
 
-    public static DatabaseProcessor getDbProcessor()
+    public DatabaseProcessor getDbProcessor()
     {
         return dbProcessor;
     }
 
-    public static Bestelling getBestelling()
+    public Bestelling getBestelling()
     {
         return bestelling;
     }
 
-    public static Klant getKlant()
+    public Klant getKlant()
     {
         return bestelling.getKlant();
+    }
+
+    public RobotMover getRobotMover()
+    {
+        return mover;
+    }
+
+    public MainGUI getMainGUI()
+    {
+        return UI;
     }
 
 }

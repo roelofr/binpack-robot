@@ -492,6 +492,31 @@ public class RobotMover extends RobotConfig implements Runnable
         }
     }
 
+    /**
+     * Returns the number of items that are in the queue
+     *
+     * @return
+     */
+    public int getQueueLength()
+    {
+        if (fetchQueue == null)
+        {
+            return 0;
+        }
+
+        return fetchQueue.size();
+    }
+
+    /**
+     * Returns the current state, which is one of the STATE_ contants.
+     *
+     * @return
+     */
+    public int getCurrentState()
+    {
+        return currentState;
+    }
+
     @Override
     public void run()
     {
