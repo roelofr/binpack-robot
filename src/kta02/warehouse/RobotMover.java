@@ -24,6 +24,7 @@ public class RobotMover extends RobotConfig implements Runnable
     private int currentState;
 
     private Point currentDestination;
+    private int currentIndex = 0;
 
     private Thread moveR1;
     private Thread moveR2;
@@ -31,6 +32,10 @@ public class RobotMover extends RobotConfig implements Runnable
 
     private int moveX = 0;
     private int moveY = 0;
+    
+    private int currentPosX = 0;
+    private int currentPosY = 0;
+    private int numberOfPackets = 0;
 
     private boolean stateX = false;
     private boolean stateY = false;
@@ -112,7 +117,7 @@ public class RobotMover extends RobotConfig implements Runnable
         {
             resetThread.start();
         }
-        if (!moveR1.isAlive())
+     /*   if (!moveR1.isAlive())
         {
             moveR1.start();
         }
@@ -120,6 +125,7 @@ public class RobotMover extends RobotConfig implements Runnable
         {
             moveR2.start();
         }
+       */
         threadsStarted = true;
     }
 
@@ -186,83 +192,6 @@ public class RobotMover extends RobotConfig implements Runnable
         } catch (InterruptedException e)
         {
             // Say NO to the error!
-        }
-    }
-
-    /**
-     * Checks the sensors in case something's changed. Used if there are sensors
-     * used in the robot. <strong>Do not use in combination with
-     * timing!</strong>
-     *
-     * @param conn Link with Arduino to check
-     */
-    private synchronized void checkMotorLevels(ArduinoConnection conn)
-    {
-        if (currentState == STATE_RESET)
-        {
-            return;
-
-        }
-        if (conn == movementArduino)
-        {
-            int sensorX = conn.getSensorData(0);
-            int sensorY = conn.getSensorData(1);
-
-            if (sensorX == 1 != stateX)
-            {
-                stateX = sensorX == 1;
-                if (stateX)
-                {
-                    locationX += (moveX > 0) ? 1 : -1;
-                }
-                if (currentDestination != null && locationX == currentDestination.x)
-                {
-                    conn.performAction(ArduinoConnection.ACTION_MOTOR1, ArduinoConnection.PARAM_MOTOR_STOP);
-                }
-            }
-            if (sensorY == 1 != stateY)
-            {
-                stateY = sensorY == 1;
-                if (stateY && currentState == STATE_PICKUP)
-                {
-                    conn.performAction(ArduinoConnection.ACTION_MOTOR2, ArduinoConnection.PARAM_MOTOR_STOP);
-                } else if (stateY)
-                {
-                    locationY += (moveY > 0) ? 1 : -1;
-                    if (currentDestination != null && locationY == currentDestination.y)
-                    {
-                        conn.performAction(ArduinoConnection.ACTION_MOTOR2, ArduinoConnection.PARAM_MOTOR_STOP);
-                    }
-                }
-            }
-        } else
-        {
-            int sensorZ = conn.getSensorData(0);
-            int sensorB = conn.getSensorData(1);
-
-            if (sensorZ == 1 != stateZ)
-            {
-                stateZ = sensorZ == 1;
-                if (stateZ)
-                {
-                    conn.performAction(ArduinoConnection.ACTION_MOTOR1, ArduinoConnection.PARAM_MOTOR_STOP);
-                    if (currentState == STATE_EXTEND)
-                    {
-                        currentState = STATE_PICKUP;
-                    } else if (currentState == STATE_RETRACT)
-                    {
-                        selectNextTarget();
-                    }
-                }
-            }
-            if (sensorB == 1 != stateB)
-            {
-                stateB = sensorB == 1;
-                if (stateB)
-                {
-                    conn.performAction(ArduinoConnection.ACTION_MOTOR2, ArduinoConnection.PARAM_MOTOR_STOP);
-                }
-            }
         }
     }
 
@@ -400,6 +329,88 @@ public class RobotMover extends RobotConfig implements Runnable
             currentState = STATE_EXTEND;
         }
     }
+    
+    private synchronized void moveRight(){
+        
+        moveMotor('x', 2);
+        sleep(Math.round( MOVE_X_SYNC * MOVE_X_RIGHT));
+        moveMotor('x',0);
+        
+        this.currentPosX ++;
+        
+        sleep(1000);
+    } 
+    private synchronized void moveLeft(){
+        moveMotor('x', -2);
+        sleep(Math.round( MOVE_X_SYNC * MOVE_X_LEFT));
+        moveMotor('x',0);
+        
+        this.currentPosX --;
+        
+        sleep(1000);
+    } 
+    private synchronized void moveUp(){
+        moveMotor('y', 3);
+        sleep(Math.round( MOVE_Y_SYNC * (1 + this.numberOfPackets*0.07f) * MOVE_Y_UP));
+        moveMotor('y',0);
+        
+        this.currentPosY --;
+        
+        sleep(1000);
+    }
+    private synchronized void moveDown(){
+        moveMotor('y', -2);
+        sleep(Math.round( MOVE_Y_SYNC * (1 - this.numberOfPackets*0.02f) * MOVE_Y_DOWN));
+        moveMotor('y',0);
+        
+        this.currentPosY ++;
+        
+        sleep(1000);
+    }
+    
+    private synchronized void pickUp(){
+        this.currentState = STATE_PICKUP;
+        moveMotor('z', 3);
+        sleep(850);
+        moveMotor('z', 0);
+        sleep(500);
+        moveMotor('y', 3);
+        sleep(Math.round( MOVE_Y_SYNC * 300));
+        moveMotor('y',0);
+        sleep(500);
+        moveMotor('z', -3);
+        sleep(1200);
+        moveMotor('z', 0);
+        sleep(500);
+        
+        this.numberOfPackets ++;
+        
+        moveMotor('y', -2);
+        sleep(Math.round( MOVE_Y_SYNC * 245));
+        moveMotor('y',0);
+        sleep(500);
+    }
+    
+    private synchronized void moveToBins(){
+        moveMotor('y', 2);
+        sleep(Math.round( MOVE_Y_SYNC * 1200));
+        moveMotor('y', 0);
+        sleep(1000);
+        moveMotor('x', -2);
+        sleep(1200);
+        moveMotor('x', 0);
+        sleep(1000);
+        
+        moveMotor('z', 3);
+        sleep(2500);
+        moveMotor('z', 0);
+        sleep(1000);
+        
+        moveMotor('y', -1);
+        sleep(Math.round( MOVE_Y_SYNC * 400));
+        moveMotor('y', 0);
+        
+    }
 
     /**
      * Runner for the reset thread
@@ -410,86 +421,53 @@ public class RobotMover extends RobotConfig implements Runnable
         {
             return;
         }
-
-        moveMotor('z', -1);
-        sleep(RESET_TIME_Z * 1000);
-        moveMotor('z', 0);
-
-        sleep(50);
-
-        moveMotor('y', 3);
-        sleep(RESET_TIME_Y * 1000);
-        moveMotor('y', 0);
-
-        sleep(50);
-
-        moveMotor('x', -3);
-        sleep(RESET_TIME_X * 1000);
-        moveMotor('x', 0);
-
-        sleep(50);
+        
+        this.numberOfPackets = 0;
+        
+        this.fetchQueue = new ArrayList<Point>();
+        this.fetchQueue.add(new Point(1,1));
+        this.fetchQueue.add(new Point(1,2));
+        this.fetchQueue.add(new Point(4,2));
+        this.fetchQueue.add(new Point(2,0));
+        
+        // always go back to zero
+        this.fetchQueue.add(new Point(0,0));
+        
+        //Index of the current package
+        this.currentIndex = 0;
+        
+        // loop trough all the positions where the robot needs to pick up packages
+        for(Point point : this.fetchQueue){
+            this.currentState = STATE_RETRIEVE;
+            // adjust the x position until its the same of the next point
+            while(this.currentPosX != point.x){
+                if(this.currentPosX < point.x){
+                    this.moveRight();
+                } else {
+                    this.moveLeft();
+                }
+            }
+            // adjust the y position until its the same of the next point
+            while(this.currentPosY != point.y){
+                if(this.currentPosY < point.y){
+                    this.moveDown();
+                } else {
+                    this.moveUp();
+                }
+            }
+            if(point != this.fetchQueue.get(this.fetchQueue.size()-1)){
+                this.currentState = STATE_PICKUP;
+                this.pickUp();
+            } else {
+                this.currentState = STATE_DEPOSIT;
+                this.moveToBins();
+            }
+            this.currentIndex++;
+        }
+        
         currentState = STATE_RETRIEVE;
 
         Thread.currentThread().interrupt();
-    }
-
-    /**
-     * Runs the thread for motor 1 (which moves X/Y and has DC power)
-     */
-    private synchronized void runMotor1Thread()
-    {
-        checkMotorLevels(movementArduino);
-        /**
-         * Pickup action, tell the y motor to move up a little
-         */
-        if (currentState == STATE_PICKUP)
-        {
-            moveMotor('y', 3);
-            sleep(MOVE_Y_PICKUP);
-            moveMotor('y', 0);
-            currentState = STATE_RETRACT;
-            return;
-        }
-
-        /**
-         * Move to the drop-off point
-         */
-        if (currentDestination == MARKER_END)
-        {
-            /**
-             * @TODO
-             */
-            return;
-        }
-        /**
-         * Move to a certain position
-         */
-
-        //Goal: currentDestination
-    }
-
-    /**
-     * Runs the thread for motor 2 (which moves the arm and the bins and has no
-     * DC power)
-     */
-    private synchronized void runMotor2Thread()
-    {
-        checkMotorLevels(binPackingArduino);
-        if (currentState == STATE_EXTEND)
-        {
-            moveMotor('z', 3);
-            sleep(MOVE_Z_IN_DUR);
-            moveMotor('z', 0);
-
-            currentState = STATE_PICKUP;
-        } else if (currentState == STATE_RETRACT)
-        {
-            moveMotor('z', -3);
-            sleep(MOVE_Z_OUT_DUR);
-            moveMotor('z', 0);
-
-            currentState = STATE_RETRIEVE;
-        }
     }
 
     /**
@@ -526,27 +504,18 @@ public class RobotMover extends RobotConfig implements Runnable
             {
                 //Wait a little
                 sleep(100);
-            } else if (Thread.currentThread().equals(resetThread))
+            } else
             {
                 System.out.println("Running reset thread");
                 runResetThread();
-                break;
-            } else if (currentState == STATE_RESET)
-            {
-                // Also wait a bit
-                sleep(250);
-            } else if (Thread.currentThread().equals(moveR1))
-            {
-                runMotor1Thread();
-            } else if (Thread.currentThread().equals(moveR2))
-            {
-                runMotor2Thread();
-            } else
-            {
-                System.err.println("Unknown thread running!");
+                System.out.println("done");
                 break;
             }
             sleep(50);
         }
+    }
+
+    public int getCurrentIndex() {
+        return currentIndex;
     }
 }

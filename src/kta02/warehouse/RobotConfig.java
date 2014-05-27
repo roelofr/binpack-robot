@@ -14,11 +14,19 @@ public abstract class RobotConfig
 {
 
     /**
-     * Duration of move inbetween regular columns
+     * Duration of move in between regular columns
      */
-    protected final int MOVE_X_COLUMN = 1030;
+    
+    protected final float MOVE_X_SYNC = 0.94f;
+    protected final float MOVE_Y_SYNC = 0.82f;
+    
+    protected final int MOVE_X_RIGHT = 730;
     /**
-     * Duration of move inbetween the column block and the drop-off point
+     * Duration of move in between regular columns
+     */
+    protected final int MOVE_X_LEFT = 750;
+    /**
+     * Duration of move in between the column block and the drop-off point
      */
     protected final int MOVE_X_BASE = 1200;
     /**
@@ -29,11 +37,11 @@ public abstract class RobotConfig
     /**
      * Duration of moving up one column
      */
-    protected final int MOVE_Y_UP = 1030;
+    protected final int MOVE_Y_UP = 695;
     /**
      * Duration of moving down one column
      */
-    protected final int MOVE_Y_DOWN = 1200;
+    protected final int MOVE_Y_DOWN = 610;
     /**
      * Duration of moving from the row block to max height
      */
@@ -69,17 +77,17 @@ public abstract class RobotConfig
 
     protected final int MOVE_B_DUR = 1000;
 
-    protected final int RESET_TIME_X = 12;
-    protected final int RESET_TIME_Y = 8;
-    protected final int RESET_TIME_Z = 2;
+    protected final int RESET_TIME_X = 8;
+    protected final int RESET_TIME_Y = 6;
+    protected final int RESET_TIME_Z = 3;
 
     protected final int STORAGE_COLS = 6;
     protected final int STORAGE_ROWS = 4;
 
-    public static final int STATE_IDLE = -1;
-    public static final int STATE_RETRIEVE = 1;
-    public static final int STATE_EXTEND = 2;
-    public static final int STATE_PICKUP = 3;
-    public static final int STATE_RETRACT = 4;
-    public static final int STATE_RESET = 5;
+    protected final int STATE_RETRIEVE = 1;
+    protected final int STATE_EXTEND = 2;
+    protected final int STATE_PICKUP = 3;
+    protected final int STATE_RETRACT = 4;
+    protected final int STATE_RESET = 5;
+    protected final int STATE_DEPOSIT = 6;
 }
