@@ -38,7 +38,7 @@ public class CurrentStatusPanel extends JPanel
         setLayout(new BorderLayout());
         setBackground(Color.white);
 
-        PanelHeader hdr = new PanelHeader("Voortgang", new Font("Arial", Font.BOLD, 16), new Color(200, 240, 255));
+        PanelHeader hdr = new PanelHeader("Huidige bestelling", new Font("Arial", Font.BOLD, 16), new Color(200, 240, 255));
         add(hdr, BorderLayout.NORTH);
         header = hdr.getLabel();
 
@@ -50,8 +50,11 @@ public class CurrentStatusPanel extends JPanel
 
         products = new ArrayList<>();
 
-        status = new RobotDisplay();
-        twoColumn.add(status);
+        JPanel cake = new JPanel();
+
+        status = new RobotDisplay(warehouse);
+        twoColumn.add(cake);
+        cake.add(status);
     }
 
 }

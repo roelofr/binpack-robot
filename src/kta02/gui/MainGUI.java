@@ -7,10 +7,10 @@ package kta02.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
-import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -19,7 +19,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import kta02.comm.ArduinoConnection;
-import kta02.easteregg.EasterEggKeyListener;
 import kta02.warehouse.Warehouse;
 
 /**
@@ -30,10 +29,15 @@ public class MainGUI extends JFrame
 {
 
     JFrame frame;
+    JPanel screenContent;
     ArduinoList connectedDevices;
     CurrentStatusPanel statusPanel;
 
+    ArrayList<ArduinoConnection> arduinoList;
+
     Warehouse wh;
+
+    boolean currentHasSelectedFile = false;
 
     public MainGUI(Warehouse wh)
     {
@@ -67,26 +71,67 @@ public class MainGUI extends JFrame
         header.setFont(new Font("Arial", Font.BOLD, 30));
         screenHeader.add(header, BorderLayout.CENTER);
 
-        JPanel screenContent = new JPanel(new BorderLayout());
+        screenContent = new JPanel(new BorderLayout());
         add(screenContent, BorderLayout.CENTER);
 
         connectedDevices = new ArduinoList(wh);
         add(connectedDevices, BorderLayout.WEST);
 
-        statusPanel = new CurrentStatusPanel(wh);
-        screenContent.add(statusPanel, BorderLayout.CENTER);
+        toggleInterface(false, true);
 
-        setVisible(true);
+    }
 
-        EasterEggKeyListener listener = new EasterEggKeyListener();
-        KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-        kfm.addKeyEventDispatcher(listener);
+    public void toggleInterface(boolean hasSelectedFile)
+    {
+        toggleInterface(hasSelectedFile, false);
+    }
+
+    private void toggleInterface(boolean hasSelectedFile, boolean forceDraw)
+    {
+        currentHasSelectedFile = hasSelectedFile;
+        dumpCenterContent();
+
+        if (hasSelectedFile)
+        {
+            fillWithCurrentStatus();
+        } else
+        {
+            fillWithSelectButton();
+        }
+
+    }
+
+    private void dumpCenterContent()
+    {
+        if (screenContent.getComponents().length > 0)
+        {
+            for (Component comp : screenContent.getComponents())
+            {
+                comp.setVisible(false);
+            }
+
+            screenContent.removeAll();
+        }
+    }
+
+    private void fillWithSelectButton()
+    {
+        screenContent.add(new SelectOrderPanel(wh), BorderLayout.CENTER);
+    }
+
+    private void fillWithCurrentStatus()
+    {
+        screenContent.add(new CurrentStatusPanel(wh), BorderLayout.CENTER);
 
     }
 
     public void setArduinos(ArrayList<ArduinoConnection> arduinoList)
     {
-        connectedDevices.setContent(arduinoList);
+        this.arduinoList = arduinoList;
+        if (connectedDevices != null)
+        {
+            connectedDevices.setContent(arduinoList);
+        }
     }
 
 }

@@ -1,4 +1,4 @@
-package database;
+package kta02.comm;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

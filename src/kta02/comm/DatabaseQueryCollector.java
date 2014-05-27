@@ -1,4 +1,4 @@
-package database;
+package kta02.comm;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -30,13 +30,26 @@ public class DatabaseQueryCollector
         instance = inst;
     }
 
-    Connection dbConn;
+    private Connection dbConn;
 
     public DatabaseQueryCollector(Connection databaseConnection)
     {
         dbConn = databaseConnection;
 
         DatabaseQueryCollector.setInstance(this);
+    }
+
+    public void sendKeepAlive()
+    {
+        try (Statement keepAliveStatement = dbConn.createStatement())
+        {
+            keepAliveStatement.executeQuery("SELECT NOW()");
+            keepAliveStatement.close();
+
+        } catch (SQLException e)
+        {
+            System.err.println(e.getMessage());
+        }
     }
 
     public ResultSet getLocation(int artikel) throws SQLException
@@ -51,8 +64,7 @@ public class DatabaseQueryCollector
                     + "FROM Cell "
                     + "WHERE id = ( SELECT `cell_id` FROM `Item` WHERE `artikel_id` = '" + artikel + "')");
 
-        }
-        catch (SQLException e)
+        } catch (SQLException e)
         {
             throw e;
         }
@@ -73,8 +85,7 @@ public class DatabaseQueryCollector
                     + "WHERE id = '" + artikel + "'"
             );
 
-        }
-        catch (SQLException e)
+        } catch (SQLException e)
         {
             throw e;
         }
@@ -94,8 +105,7 @@ public class DatabaseQueryCollector
                     + "WHERE id = '" + artikel + "'"
             );
 
-        }
-        catch (SQLException e)
+        } catch (SQLException e)
         {
             throw e;
         }

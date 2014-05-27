@@ -1,26 +1,31 @@
 package kta02.warehouse;
 
-import database.DatabaseConnection;
-import database.DatabaseProcessor;
+import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
+import java.util.Date;
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import kta02.binpackage.BestFit;
 import kta02.comm.ArduinoConnection;
+import kta02.comm.DatabaseConnection;
+import kta02.comm.DatabaseProcessor;
+import kta02.comm.DatabaseQueryCollector;
 import kta02.comm.InsufficientDevicesException;
 import kta02.comm.SerialCommunicator;
-import kta02.domein.Artikel;
 import kta02.domein.Bestelling;
 import kta02.domein.Klant;
+import kta02.easteregg.EasterEggKeyListener;
 import kta02.gui.EmergencyPanel;
+import kta02.gui.LoadingDialog;
 import kta02.gui.MainGUI;
 import kta02.tsp.Algoritm;
+import kta02.xml.XMLReader;
 import kta02.xml.XMLWriter;
-import xml.XMLReader;
 
 /**
  *
@@ -29,10 +34,13 @@ import xml.XMLReader;
 public class Warehouse implements Runnable
 {
 
-    static XMLReader reader;
-    static Bestelling bestelling;
+    private final long DB_KEEP_ALIVE = 30 * 1000;
 
-    static DatabaseProcessor dbProcessor;
+    private XMLReader reader;
+
+    private Bestelling bestelling;
+
+    private DatabaseProcessor dbProcessor;
 
     public static final boolean DEBUG = true;
 
@@ -48,9 +56,87 @@ public class Warehouse implements Runnable
 
     private EmergencyPanel emPanel;
 
+    private EasterEggKeyListener keyListener;
+
+    private long lastKeepAlive = 0;
+
     public static void main(String[] args)
     {
         warehouse = new Warehouse();
+    }
+
+    private Warehouse()
+    {
+        setLookAndFeel();
+
+        UI = new MainGUI(this);
+        mover = new RobotMover();
+
+        arduinos = new ArrayList<>();
+
+        System.out.println("KTA02");
+        System.out.println("Bin-Packing Problem Simulator");
+
+        connectToDatabase();
+        recognizerThread = new Thread(this);
+    }
+
+    private void linkKeyInput()
+    {
+        if (keyListener != null)
+        {
+            return;
+        }
+
+        keyListener = new EasterEggKeyListener(this);
+        KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        kfm.addKeyEventDispatcher(keyListener);
+    }
+
+    private void connectToDatabase()
+    {
+        new Thread(new Runnable()
+        {
+
+            private void sleep(long delay)
+            {
+                try
+                {
+                    Thread.sleep(delay);
+                } catch (Exception e)
+                {
+
+                }
+            }
+
+            @Override
+            public void run()
+            {
+                LoadingDialog dialog = new LoadingDialog("Verbinden met database...");
+                sleep(100);
+                DatabaseConnection dbCon = new DatabaseConnection();
+                try
+                {
+                    dbCon.linkToQueryCollector();
+                } catch (SQLException ex)
+                {
+                    UI.dispose();
+                    dialog.dispose();
+                    JOptionPane.showMessageDialog(null, "Er kon geen verbinding met de database gemaakt worden!\nDe applicatie zal nu afsluiten.", "Databaseverbinding fout!", JOptionPane.WARNING_MESSAGE);
+                    System.exit(1);
+                    return;
+                }
+                dialog.dispose();
+                UI.setVisible(true);
+                if (!recognizerThread.isAlive())
+                {
+                    recognizerThread.start();
+                }
+                linkKeyInput();
+                connectToArduinos();
+            }
+        }).start();
+
     }
 
     /**
@@ -61,6 +147,9 @@ public class Warehouse implements Runnable
         warehouse.emergencyStop();
     }
 
+    /**
+     * Immediately stops all Arduino's
+     */
     public void emergencyStop()
     {
         int i = 0;
@@ -82,6 +171,10 @@ public class Warehouse implements Runnable
         emPanel = new EmergencyPanel(this);
     }
 
+    /**
+     * Restores the emergency state of the Arduino's so they can be controlled
+     * again
+     */
     public void restoreSystems()
     {
         int i = 0;
@@ -101,37 +194,19 @@ public class Warehouse implements Runnable
         }
     }
 
-    private Warehouse()
-    {
-        setLookAndFeel();
-
-        UI = new MainGUI(this);
-        mover = new RobotMover();
-
-        arduinos = new ArrayList<>();
-
-        System.out.println("KTA02");
-        System.out.println("Bin-Packing Problem Simulator");
-        DatabaseConnection dbCon = new DatabaseConnection();
-        try
-        {
-            dbCon.linkToQueryCollector();
-        } catch (SQLException ex)
-        {
-            System.err.println(ex.getMessage());
-        }
-
-        recognizerThread = new Thread(this);
-
-        // Connect to the Arduino's
-        connectToArduinos();
-    }
-
+    /**
+     * Adds a Point to the fetch queue of the robot mover
+     *
+     * @param target
+     */
     public void addPointToFetchQueue(Point target)
     {
         mover.addToFetchQueue(target);
     }
 
+    /**
+     * Starts the pickup process, there is usually no need to call this.
+     */
     public void startPickup()
     {
         mover.startPickup();
@@ -176,10 +251,6 @@ public class Warehouse implements Runnable
         }
 
         UI.setArduinos(arduinos);
-        if (!recognizerThread.isAlive())
-        {
-            recognizerThread.start();
-        }
 
     }
 
@@ -228,17 +299,20 @@ public class Warehouse implements Runnable
         // Continue untill interrupted
         while (!Thread.currentThread().isInterrupted())
         {
+            if (lastKeepAlive < new Date().getTime())
+            {
+                lastKeepAlive = new Date().getTime() + DB_KEEP_ALIVE;
+                DatabaseQueryCollector.getInstance().sendKeepAlive();
+            }
+
             if (arduinos == null)
             {
-
-                System.err.println("No Arduinos yet, waiting 5 seconds");
                 sleep(5000);
                 continue;
             }
 
             if (arduinos.size() < 2)
             {
-                System.err.println("Not enough arduinos for recognizer, waiting 5 seconds.");
                 sleep(5000);
                 continue;
             }
@@ -260,6 +334,11 @@ public class Warehouse implements Runnable
         }
     }
 
+    /**
+     * Sets the XML file, called from <code>kta02.gui.XMLPicker</code>.
+     *
+     * @param file
+     */
     public void setXMLFile(File file)
     {
         reader = new XMLReader(file.getPath());
@@ -271,12 +350,6 @@ public class Warehouse implements Runnable
         try
         {
             dbProcessor.processArticles();
-            System.out.println("__________________________________________________________________");
-            for (Artikel artikel : bestelling.getArtikelen())
-            {
-                System.out.println(artikel);
-            }
-            System.out.println("__________________________________________________________________");
         } catch (SQLException ex)
         {
             System.err.println(ex.getMessage());
@@ -290,41 +363,34 @@ public class Warehouse implements Runnable
                 bestandsNaam += bestelling.getBestelNummer() + ". " + volledigeKlantNaam  + " - " + i;
                 bestandsNaam += ".xml";
 
-                new XMLWriter(bestelling, i).writeXML(bestandsNaam);
-            }
-            
-            ArrayList<Point> positions = new ArrayList<>();
-            for(int q = 0; q < idOrder.size(); q ++){
-                positions.add(new Point(bestelling.getArtikelen().get(idOrder.get(q)).getLocatie()));
+        new XMLWriter(bestelling).writeXML(bestandsNaam);
 
-            }
-            
-            for(int q = 0; q < positions.size(); q ++){
-                System.out.println("******");
-                System.out.println(positions.get(q).x + ", " + positions.get(q).y);
-            }
-       }else{
-            JOptionPane.showMessageDialog(emPanel, "Maximaal aantal producten is 5.", "Product amount Error", JOptionPane.ERROR_MESSAGE);
-            System.out.println("Haal een aantal artikelen uit de XML file weg.");
-       }
-
-        //TEST FOR ALGORITHM
-        //REMOVE WHEN DONE
+        UI.toggleInterface(true);
     }
 
-    public static DatabaseProcessor getDbProcessor()
+    public DatabaseProcessor getDbProcessor()
     {
         return dbProcessor;
     }
 
-    public static Bestelling getBestelling()
+    public Bestelling getBestelling()
     {
         return bestelling;
     }
 
-    public static Klant getKlant()
+    public Klant getKlant()
     {
         return bestelling.getKlant();
+    }
+
+    public RobotMover getRobotMover()
+    {
+        return mover;
+    }
+
+    public MainGUI getMainGUI()
+    {
+        return UI;
     }
 
 }

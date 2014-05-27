@@ -7,14 +7,16 @@ package kta02.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Rectangle;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import kta02.warehouse.Warehouse;
 
 /**
@@ -30,10 +32,9 @@ public class EmergencyPanel extends JFrame implements ActionListener
     public EmergencyPanel(Warehouse wh)
     {
         warehouse = wh;
-        setTitle("Emergency stop");
+        setTitle("Noodstop");
         setAlwaysOnTop(true);
-        setAutoRequestFocus(true);
-        setBounds(new Rectangle(400, 300));
+        setType(Type.UTILITY);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         setLayout(new BorderLayout());
@@ -46,22 +47,30 @@ public class EmergencyPanel extends JFrame implements ActionListener
         EasyGUI.addFiller(inner, EasyGUI.FILLER_LARGE, BorderLayout.SOUTH);
         EasyGUI.addFiller(inner, EasyGUI.FILLER_LARGE, BorderLayout.WEST);
 
-        JPanel pnl = new JPanel(new BorderLayout());
+        JPanel pnl = new JPanel(new GridLayout(2, 1));
 
         inner.add(pnl, BorderLayout.CENTER);
 
-        JLabel lbl = new JLabel("Emergency stop!");
+        JLabel lbl = new JLabel("Noodstop");
         lbl.setFont(new Font("Arial", Font.BOLD, 30));
+        lbl.setHorizontalAlignment(SwingConstants.CENTER);
+        lbl.setVerticalAlignment(SwingConstants.BOTTOM);
         lbl.setForeground(Color.red);
 
-        pnl.add(lbl, BorderLayout.CENTER);
-
-        reset = new JButton("Restore operation");
+        reset = new JButton("Systeem herstellen");
         reset.addActionListener(this);
-        pnl.add(reset, BorderLayout.SOUTH);
+
+        pnl.add(lbl);
+        pnl.add(reset);
+        setVisible(true);
+
+        Dimension size = new Dimension(260, 280);
+
+        setMinimumSize(size);
+        setMaximumSize(size);
+        setPreferredSize(size);
 
         setLocationRelativeTo(null);
-        setVisible(true);
     }
 
     @Override

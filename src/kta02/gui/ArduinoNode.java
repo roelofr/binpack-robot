@@ -89,7 +89,7 @@ public class ArduinoNode extends JPanel implements Runnable, MouseListener
 
         header = new JLabel();
         header.setFont(new Font("Arial", Font.PLAIN, 24));
-        header.setText("Loading...");
+        header.setText("Verbinden...");
         textFrame.add(header, BorderLayout.NORTH);
 
         JPanel subtextFrame = new JPanel(new GridLayout(2, 2));
@@ -162,7 +162,6 @@ public class ArduinoNode extends JPanel implements Runnable, MouseListener
 
             if (comm == null)
             {
-                System.err.println("COM link lost unexpectedly!");
                 break;
             }
 
@@ -178,13 +177,13 @@ public class ArduinoNode extends JPanel implements Runnable, MouseListener
 
                 status[0].setText("Motor 1: " + Integer.toString(speed1));
                 status[1].setText("Motor 2: " + Integer.toString(speed2));
-                status[3].setText("Device: " + comm.getComPort());
+                status[3].setText("Poort: " + comm.getComPort());
 
                 long now = new Date().getTime();
 
                 if (comm.isOnline() && comm.getLastSeen() < now - ARDUINO_PING_SLOW)
                 {
-                    status[2].setText("Not responding");
+                    status[2].setText("Reageert niet");
                     status[2].setForeground(Color.red);
                     if (comm.getLastSeen() < now - ARDUINO_PING_DEATH)
                     {
@@ -218,8 +217,11 @@ public class ArduinoNode extends JPanel implements Runnable, MouseListener
     @Override
     public void mouseClicked(MouseEvent e)
     {
-        ManualArduinoControl dialog = new ManualArduinoControl(comm, wh);
-        dialog.setVisible(true);
+        if (Warehouse.DEBUG)
+        {
+            ManualArduinoControl dialog = new ManualArduinoControl(comm, wh);
+            dialog.setVisible(true);
+        }
     }
 
     @Override

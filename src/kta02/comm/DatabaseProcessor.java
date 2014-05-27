@@ -1,4 +1,4 @@
-package database;
+package kta02.comm;
 
 import java.awt.Point;
 import java.sql.ResultSet;
