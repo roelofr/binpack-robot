@@ -8,8 +8,6 @@ package kta02.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -53,20 +51,6 @@ public class CurrentOrder extends JPanel
         orderDetails = new JTextPane();
         orderDetails.setBackground(Color.lightGray);
         inner.add(orderDetails, BorderLayout.CENTER);
-
-        selectFileButton = new JButton("Bestand openen");
-        selectFileButton.addActionListener(new selectListener());
-        inner.add(selectFileButton, BorderLayout.SOUTH);
-    }
-
-    class selectListener implements ActionListener
-    {
-
-        @Override
-        public void actionPerformed(ActionEvent e)
-        {
-            XMLPicker.createPickerAndLoader(wh, wh.getMainGUI());
-        }
 
     }
 

@@ -11,7 +11,6 @@ import javax.swing.UnsupportedLookAndFeelException;
 import kta02.comm.ArduinoConnection;
 import kta02.comm.InsufficientDevicesException;
 import kta02.comm.SerialCommunicator;
-import kta02.domein.Artikel;
 import kta02.domein.Bestelling;
 import kta02.domein.Klant;
 import kta02.gui.EmergencyPanel;
@@ -286,12 +285,6 @@ public class Warehouse implements Runnable
         try
         {
             dbProcessor.processArticles();
-            System.out.println("__________________________________________________________________");
-            for (Artikel artikel : bestelling.getArtikelen())
-            {
-                System.out.println(artikel);
-            }
-            System.out.println("__________________________________________________________________");
         } catch (SQLException ex)
         {
             System.err.println(ex.getMessage());
@@ -305,11 +298,8 @@ public class Warehouse implements Runnable
         bestandsNaam += ".xml";
 
         new XMLWriter(bestelling).writeXML(bestandsNaam);
-        //}
 
-        //TEST FOR ALGORITHM
-        //REMOVE WHEN DONE
-        //ArrayList<Integer> orderSorting = Algoritm.tourImprovement(bestelling.getArtikelen(), 0, 0);
+        UI.toggleInterface(true);
     }
 
     public DatabaseProcessor getDbProcessor()

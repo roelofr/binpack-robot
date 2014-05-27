@@ -19,10 +19,62 @@ public abstract class EasyGUI
     public static final Dimension FILLER_SMALL = new Dimension(8, 8);
     public static final Dimension FILLER_MEDIUM = new Dimension(16, 16);
     public static final Dimension FILLER_LARGE = new Dimension(50, 50);
+    private static final Dimension FILLER_MAX = new Dimension(16384, 16384);
 
+    /**
+     * Adds a Filler (<code>Box.Filler</code>) of a fixed size to the Component
+     * given as first argument with the size given in the second argument at the
+     * position given in argument 3
+     *
+     * @param parent
+     * @param fillerSize
+     * @param location
+     */
     public static void addFiller(JComponent parent, Dimension fillerSize, String location)
     {
         Box.Filler tempFill = new Box.Filler(fillerSize, fillerSize, fillerSize);
         parent.add(tempFill, location);
     }
+
+    /**
+     * Adds a Filler (<code>Box.Filler</code>) of a fixed size to the Component
+     * given as first argument with the size given in the second argument at the
+     * default position
+     *
+     * @param parent
+     * @param fillerSize
+     */
+    public static void addFiller(JComponent parent, Dimension fillerSize)
+    {
+        addFiller(parent, fillerSize, null);
+    }
+
+    /**
+     * Adds a Filler (<code>Box.Filler</code>) of a flexible size to the
+     * Component given as first argument with the minimum size given in the
+     * second argument at the position given in argument 3
+     *
+     * @param parent
+     * @param fillerSize
+     * @param location
+     */
+    public static void addFlexibleFiller(JComponent parent, Dimension fillerSize, String location)
+    {
+        Box.Filler tempFill = new Box.Filler(fillerSize, fillerSize, FILLER_MAX);
+        parent.add(tempFill, location);
+    }
+
+    /**
+     * Adds a Filler (<code>Box.Filler</code>) of a flexible size to the
+     * Component given as first argument with the minimum size given in the
+     * second argument at the default position
+     *
+     * @param parent
+     * @param fillerSize
+     */
+    public static void addFlexibleFiller(JComponent parent, Dimension fillerSize)
+    {
+        addFlexibleFiller(parent, fillerSize, null);
+    }
+
 }
