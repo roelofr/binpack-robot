@@ -70,7 +70,7 @@ public class Warehouse implements Runnable
         setLookAndFeel();
 
         UI = new MainGUI(this);
-        mover = new RobotMover();
+        mover = new RobotMover(this);
 
         arduinos = new ArrayList<>();
 
@@ -343,54 +343,65 @@ public class Warehouse implements Runnable
     {
         reader = new XMLReader(file.getPath());
 
-        bestelling = reader.readFromXml();
+        Bestelling temporaryBestelling;
+        temporaryBestelling = reader.readFromXml();
 
-        dbProcessor = new DatabaseProcessor(bestelling);
+        dbProcessor = new DatabaseProcessor(temporaryBestelling);
 
         try
         {
             dbProcessor.processArticles();
-            System.out.println("__________________________________________________________________");
-            for (Artikel artikel : bestelling.getArtikelen())
+            if (DEBUG)
             {
-                System.out.println(artikel);
+                System.out.println("__________________________________________________________________");
+                for (Artikel artikel : temporaryBestelling.getArtikelen())
+                {
+                    System.out.println(artikel);
+                }
+                System.out.println("__________________________________________________________________");
             }
-            System.out.println("__________________________________________________________________");
         } catch (SQLException ex)
         {
             System.err.println(ex.getMessage());
         }
         //als er meer dan 1 pakbon is, zorg dan dat de order met meerdere pakbonnen gemaakt zijn!
-        if (bestelling.getArtikelen().size() < 5)
+        if (temporaryBestelling.getArtikelen().size() < 5)
         {
-            ArrayList<Integer> idOrder = Algoritm.tourImprovement(bestelling.getArtikelen(), 0, 0);
-            for (int i = 0; i < BestFit.BestFit(bestelling, idOrder).size(); i++)
+            ArrayList<Integer> idOrder = Algoritm.tourImprovement(temporaryBestelling.getArtikelen(), 0, 0);
+            for (int i = 0; i < BestFit.BestFit(temporaryBestelling, idOrder).size(); i++)
             {
                 String bestandsNaam = "";
-                String volledigeKlantNaam = bestelling.getKlant().getVoornaam() + " " + bestelling.getKlant().getAchternaam();
-                bestandsNaam += bestelling.getBestelNummer() + ". " + volledigeKlantNaam + " - " + i;
+                String volledigeKlantNaam = temporaryBestelling.getKlant().getVoornaam() + " " + temporaryBestelling.getKlant().getAchternaam();
+                bestandsNaam += temporaryBestelling.getBestelNummer() + ". " + volledigeKlantNaam + " - " + i;
                 bestandsNaam += ".xml";
 
-                new XMLWriter(bestelling, i).writeXML(bestandsNaam);
+                new XMLWriter(temporaryBestelling, i).writeXML(bestandsNaam);
             }
 
             ArrayList<Point> positions = new ArrayList<>();
             for (int q = 0; q < idOrder.size(); q++)
             {
-                positions.add(new Point(bestelling.getArtikelen().get(idOrder.get(q)).getLocatie()));
+                positions.add(new Point(temporaryBestelling.getArtikelen().get(idOrder.get(q)).getLocatie()));
 
             }
 
-            for (int q = 0; q < positions.size(); q++)
+            if (DEBUG)
             {
-                System.out.println("******");
-                System.out.println(positions.get(q).x + ", " + positions.get(q).y);
+                for (int q = 0; q < positions.size(); q++)
+                {
+                    System.out.println("******");
+                    System.out.println(positions.get(q).x + ", " + positions.get(q).y);
+                }
             }
+
+            mover.retrieveItems(positions);
         } else
         {
             JOptionPane.showMessageDialog(emPanel, "Maximaal aantal producten is 5.", "Product amount Error", JOptionPane.ERROR_MESSAGE);
             System.out.println("Haal een aantal artikelen uit de XML file weg.");
         }
+
+        bestelling = temporaryBestelling;
 
         UI.toggleInterface(true);
     }

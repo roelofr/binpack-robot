@@ -16,10 +16,9 @@ public abstract class RobotConfig
     /**
      * Duration of move in between regular columns
      */
-    
     protected final float MOVE_X_SYNC = 0.94f;
     protected final float MOVE_Y_SYNC = 0.82f;
-    
+
     protected final int MOVE_X_RIGHT = 730;
     /**
      * Duration of move in between regular columns
@@ -85,9 +84,9 @@ public abstract class RobotConfig
     protected final int STORAGE_ROWS = 4;
 
     public static final int STATE_RETRIEVE = 1;
-    public static final int STATE_EXTEND = 2;
-    public static final int STATE_PICKUP = 3;
-    public static final int STATE_RETRACT = 4;
-    public static final int STATE_RESET = 5;
-    public static final int STATE_DEPOSIT = 6;
+    public static final int STATE_PICKUP = 2;
+    public static final int STATE_RESET = 3;
+    public static final int STATE_DEPOSIT = 4;
+    public static final int STATE_IDLE = 5;
+
 }

@@ -7,13 +7,14 @@ package kta02.warehouse;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Collections;
 import kta02.comm.ArduinoConnection;
 
 /**
  *
  * @author Roelof
  */
-public class RobotMover extends RobotConfig implements Runnable
+public class RobotMover extends RobotConfig
 {
 
     private final Point MARKER_END = new Point(0, STORAGE_ROWS);
@@ -26,13 +27,12 @@ public class RobotMover extends RobotConfig implements Runnable
     private Point currentDestination;
     private int currentIndex = 0;
 
-    private Thread moveR1;
-    private Thread moveR2;
     private Thread resetThread;
+    private Thread retrieveThread;
 
     private int moveX = 0;
     private int moveY = 0;
-    
+
     private int currentPosX = 0;
     private int currentPosY = 0;
     private int numberOfPackets = 0;
@@ -43,6 +43,8 @@ public class RobotMover extends RobotConfig implements Runnable
     private boolean stateB = false;
 
     private boolean threadsStarted = false;
+
+    private final Warehouse warehouse;
 
     /**
      * Colum at which the robot is currently situated
@@ -61,6 +63,21 @@ public class RobotMover extends RobotConfig implements Runnable
     private ArrayList<Point> fetchQueue;
 
     /**
+     * Sets up everything and starts the reset thread, so the robot is always at
+     * the same location
+     *
+     * @param wh Instance of a warehouse
+     */
+    public RobotMover(Warehouse wh)
+    {
+        warehouse = wh;
+        currentState = STATE_RESET;
+
+        retrieveThread = new Thread(new robotMoveThread());
+        resetThread = new Thread(new robotResetThread());
+    }
+
+    /**
      * Returns a boolean which indicates if the robot has been initialised.
      * Checks if the resetThread exists and has finished executing
      *
@@ -77,19 +94,6 @@ public class RobotMover extends RobotConfig implements Runnable
             return false;
         }
         return true;
-    }
-
-    /**
-     * Sets up everything and starts the reset thread, so the robot is always at
-     * the same location
-     */
-    public RobotMover()
-    {
-        currentState = STATE_RESET;
-
-        resetThread = new Thread(this);
-        moveR1 = new Thread(this);
-        moveR2 = new Thread(this);
     }
 
     private void activateThreads()
@@ -117,30 +121,38 @@ public class RobotMover extends RobotConfig implements Runnable
         {
             resetThread.start();
         }
-     /*   if (!moveR1.isAlive())
-        {
-            moveR1.start();
-        }
-        if (!moveR2.isAlive())
-        {
-            moveR2.start();
-        }
-       */
         threadsStarted = true;
     }
 
+    /**
+     * Sets the robot that is used for bin movement and arm extension /
+     * retraction.
+     *
+     * @param conn
+     */
     public void setBinRobot(ArduinoConnection conn)
     {
         binPackingArduino = conn;
         activateThreads();
     }
 
+    /**
+     * Sets the robot that is used for x/y movementF
+     *
+     * @param conn
+     */
     public void setMoveRobot(ArduinoConnection conn)
     {
         movementArduino = conn;
         activateThreads();
     }
 
+    /**
+     * Utility function to set both the bin/arm robot and the x/y robot
+     *
+     * @param xyRobot Robot used for X/Y movement
+     * @param zbRobot Robot used for bin / arm movement
+     */
     public void setBothArduinos(ArduinoConnection xyRobot, ArduinoConnection zbRobot)
     {
         setBinRobot(zbRobot);
@@ -148,33 +160,26 @@ public class RobotMover extends RobotConfig implements Runnable
     }
 
     /**
-     * Adds a Point (x- and y-coordinate) to the to-be-fetched queue, which is
-     * handled in order. The Arduino will return to it's start position as soon
-     * as the queue has been completely emptied. Figuring out the shortest route
-     * by itself.
+     * Tells the robot to start retrieveing the selected items
      *
-     * @param point The X/Y coordinate, X is the column, Y the row.
-     * @throws IndexOutOfBoundsException If the row or column doesn't exist,
-     * this exception is thrown
+     * @todo This function needs to be finished, as it's already being called
+     * from within Warehouse
+     * @param list
      */
-    public void addToFetchQueue(Point point) throws IndexOutOfBoundsException
+    public void retrieveItems(ArrayList<Point> list)
     {
-        point.setLocation(
-                (int) Math.floor(point.getX()),
-                (int) Math.floor(point.getY())
-        );
-        if (point.getX() < 0 || point.getX() > STORAGE_COLS)
+        if (!fetchQueue.isEmpty())
         {
-            throw new IndexOutOfBoundsException("Column " + point.getY() + " doesn't exist");
+            return;
         }
 
-        if (point.getY() < 0 || point.getY() > STORAGE_ROWS)
+        fetchQueue.clear();
+        fetchQueue.addAll(list);
+
+        if (!retrieveThread.isAlive())
         {
-            throw new IndexOutOfBoundsException("Row " + point.getY() + " doesn't exist");
+            retrieveThread.start();
         }
-
-        fetchQueue.add(point);
-
     }
 
     /**
@@ -302,187 +307,274 @@ public class RobotMover extends RobotConfig implements Runnable
     }
 
     /**
-     * Pulls the next entry off the fetch queue and sets the
-     * <code>currentState</code> to <code>STATE_RETRIEVE</code>. If there are no
-     * more destinations to go to the <code>currentDestination</code> is set to
-     * <code>MARKER_END</code>.
+     * Moves the robot one column to the right
      */
-    private synchronized void selectNextTarget()
+    private synchronized void moveRight()
     {
-        if (fetchQueue.size() > 0)
-        {
-            currentDestination = fetchQueue.remove(fetchQueue.size() - 1);
-        } else
-        {
-            currentDestination = MARKER_END;
-        }
-        currentState = STATE_RETRIEVE;
+
+        moveMotor('x', 2);
+        sleep(Math.round(MOVE_X_SYNC * MOVE_X_RIGHT));
+        moveMotor('x', 0);
+
+        this.currentPosX++;
+
+        sleep(1000);
     }
 
     /**
-     * Starts a pickup, can only be called when not already picking stuff up.
+     * Moves the robot one column to the left
      */
-    public void startPickup()
+    private synchronized void moveLeft()
     {
-        if (currentState == STATE_RETRIEVE)
-        {
-            currentState = STATE_EXTEND;
-        }
-    }
-    
-    private synchronized void moveRight(){
-        
-        moveMotor('x', 2);
-        sleep(Math.round( MOVE_X_SYNC * MOVE_X_RIGHT));
-        moveMotor('x',0);
-        
-        this.currentPosX ++;
-        
-        sleep(1000);
-    } 
-    private synchronized void moveLeft(){
         moveMotor('x', -2);
-        sleep(Math.round( MOVE_X_SYNC * MOVE_X_LEFT));
-        moveMotor('x',0);
-        
-        this.currentPosX --;
-        
+        sleep(Math.round(MOVE_X_SYNC * MOVE_X_LEFT));
+        moveMotor('x', 0);
+
+        this.currentPosX--;
+
         sleep(1000);
-    } 
-    private synchronized void moveUp(){
+    }
+
+    /**
+     * Moves the robot one row upwards
+     */
+    private synchronized void moveUp()
+    {
         moveMotor('y', 3);
-        sleep(Math.round( MOVE_Y_SYNC * (1 + this.numberOfPackets*0.07f) * MOVE_Y_UP));
-        moveMotor('y',0);
-        
-        this.currentPosY --;
-        
+        sleep(Math.round(MOVE_Y_SYNC * (1 + this.numberOfPackets * 0.07f) * MOVE_Y_UP));
+        moveMotor('y', 0);
+
+        this.currentPosY--;
+
         sleep(1000);
     }
-    private synchronized void moveDown(){
+
+    /**
+     * Moves the robot one row downwards
+     */
+    private synchronized void moveDown()
+    {
         moveMotor('y', -2);
-        sleep(Math.round( MOVE_Y_SYNC * (1 - this.numberOfPackets*0.02f) * MOVE_Y_DOWN));
-        moveMotor('y',0);
-        
-        this.currentPosY ++;
-        
+        sleep(Math.round(MOVE_Y_SYNC * (1 - this.numberOfPackets * 0.02f) * MOVE_Y_DOWN));
+        moveMotor('y', 0);
+
+        this.currentPosY++;
+
         sleep(1000);
     }
-    
-    private synchronized void pickUp(){
+
+    /**
+     * Starts a pickup action, extracting the arm, lifting the robot and
+     * retracting the arm, to then lower the robot to it's start position.
+     */
+    private synchronized void pickUp()
+    {
         this.currentState = STATE_PICKUP;
         moveMotor('z', 3);
         sleep(850);
         moveMotor('z', 0);
         sleep(500);
         moveMotor('y', 3);
-        sleep(Math.round( MOVE_Y_SYNC * 300));
-        moveMotor('y',0);
+        sleep(Math.round(MOVE_Y_SYNC * 300));
+        moveMotor('y', 0);
         sleep(500);
         moveMotor('z', -3);
         sleep(1200);
         moveMotor('z', 0);
         sleep(500);
-        
-        this.numberOfPackets ++;
-        
+
+        this.numberOfPackets++;
+
         moveMotor('y', -2);
-        sleep(Math.round( MOVE_Y_SYNC * 245));
-        moveMotor('y',0);
+        sleep(Math.round(MOVE_Y_SYNC * 245));
+        moveMotor('y', 0);
         sleep(500);
     }
-    
-    private synchronized void moveToBins(){
+
+    /**
+     * Moves the robot from <strong>(0,0)</strong> to the bin deposit point.
+     */
+    private synchronized void moveToBins()
+    {
         moveMotor('y', 2);
-        sleep(Math.round( MOVE_Y_SYNC * 1200));
+        sleep(Math.round(MOVE_Y_SYNC * 1200));
         moveMotor('y', 0);
         sleep(1000);
         moveMotor('x', -2);
         sleep(1200);
         moveMotor('x', 0);
         sleep(1000);
-        
+
         moveMotor('z', 3);
         sleep(2500);
         moveMotor('z', 0);
         sleep(1000);
-        
+
         moveMotor('y', -1);
-        sleep(Math.round( MOVE_Y_SYNC * 400));
+        sleep(Math.round(MOVE_Y_SYNC * 400));
         moveMotor('y', 0);
-        
+
     }
 
-    /**
-     * Runner for the reset thread
-     */
-    private synchronized void runResetThread()
+    private synchronized void runResetter()
     {
+
         if (currentState != STATE_RESET)
         {
             return;
         }
-        
+
+        moveMotor('z', -3);
+        sleep(RESET_TIME_Z);
+        moveMotor('z', 0);
+        sleep(50);
+
+        moveMotor('y', 2);
+        sleep(RESET_TIME_Y);
+        moveMotor('y', 0);
+        sleep(50);
+
+        moveMotor('x', -2);
+        sleep(RESET_TIME_X);
+        moveMotor('x', 0);
+        sleep(50);
+
+        currentState = STATE_IDLE;
+    }
+
+    /**
+     * Runner for the main thread
+     */
+    private synchronized boolean runQueueRetrievalThread()
+    {
+        if (currentState != STATE_IDLE)
+        {
+            return false;
+        }
+
         this.numberOfPackets = 0;
-        
+
         this.fetchQueue = new ArrayList<Point>();
-        this.fetchQueue.add(new Point(1,1));
-        this.fetchQueue.add(new Point(1,2));
-        this.fetchQueue.add(new Point(4,2));
-        this.fetchQueue.add(new Point(2,0));
-        
+        this.fetchQueue.add(new Point(1, 1));
+        this.fetchQueue.add(new Point(1, 2));
+        this.fetchQueue.add(new Point(4, 2));
+        this.fetchQueue.add(new Point(2, 0));
+
         // always go back to zero
-        this.fetchQueue.add(new Point(0,0));
-        
+        this.fetchQueue.add(new Point(0, 0));
+
         //Index of the current package
         this.currentIndex = 0;
-        
+
         // loop trough all the positions where the robot needs to pick up packages
-        for(Point point : this.fetchQueue){
+        for (Point point : this.fetchQueue)
+        {
             this.currentState = STATE_RETRIEVE;
             // adjust the x position until its the same of the next point
-            while(this.currentPosX != point.x){
-                if(this.currentPosX < point.x){
+            while (this.currentPosX != point.x)
+            {
+                if (this.currentPosX < point.x)
+                {
                     this.moveRight();
-                } else {
+                } else
+                {
                     this.moveLeft();
                 }
             }
             // adjust the y position until its the same of the next point
-            while(this.currentPosY != point.y){
-                if(this.currentPosY < point.y){
+            while (this.currentPosY != point.y)
+            {
+                if (this.currentPosY < point.y)
+                {
                     this.moveDown();
-                } else {
+                } else
+                {
                     this.moveUp();
                 }
             }
-            if(point != this.fetchQueue.get(this.fetchQueue.size()-1)){
+            if (point != this.fetchQueue.get(this.fetchQueue.size() - 1))
+            {
                 this.currentState = STATE_PICKUP;
                 this.pickUp();
-            } else {
+            } else
+            {
                 this.currentState = STATE_DEPOSIT;
                 this.moveToBins();
             }
             this.currentIndex++;
         }
-        
-        currentState = STATE_RETRIEVE;
 
-        Thread.currentThread().interrupt();
+        return true;
     }
 
     /**
-     * Returns the number of items that are in the queue
-     *
-     * @return
+     * Runs the thread that pulls the packages off the arm and puts them into
+     * the bin.
      */
-    public int getQueueLength()
+    public void runBinDepositThread()
     {
-        if (fetchQueue == null)
+        // Reverse the fetch queue
+        Collections.reverse(fetchQueue);
+
+        for (Point location : fetchQueue)
         {
-            return 0;
+            // Do stuff with the point
+        }
+    }
+
+    private class robotMoveThread implements Runnable
+    {
+
+        @Override
+        public void run()
+        {
+            while (!Thread.currentThread().isInterrupted())
+            {
+                if (!canMove() || currentState == STATE_RESET)
+                {
+                    //Wait a little
+                    sleep(100);
+                } else
+                {
+                    if (runQueueRetrievalThread())
+                    {
+                        runBinDepositThread();
+                    }
+                    break;
+                }
+                sleep(50);
+            }
         }
 
-        return fetchQueue.size();
+    }
+
+    private class robotResetThread implements Runnable
+    {
+
+        @Override
+        public void run()
+        {
+            while (!Thread.currentThread().isInterrupted())
+            {
+                if (!canMove() || currentState != STATE_RESET)
+                {
+                    //Wait a little
+                    sleep(100);
+                } else
+                {
+                    System.out.println("Running reset thread");
+                    runResetter();
+                    break;
+                }
+                sleep(50);
+            }
+        }
+
+    }
+
+    public int getCurrentIndex()
+    {
+        return currentIndex;
     }
 
     /**
@@ -495,27 +587,58 @@ public class RobotMover extends RobotConfig implements Runnable
         return currentState;
     }
 
-    @Override
-    public void run()
+    /**
+     * DEPRECATED FUNCTIONS
+     */
+    /**
+     * Returns the number of items that are in the queue
+     *
+     * @return
+     * @deprecated Deprecated in favor of getCurrentIndex
+     */
+    public int getQueueLength()
     {
-        while (!Thread.currentThread().isInterrupted())
-        {
-            if (!canMove())
-            {
-                //Wait a little
-                sleep(100);
-            } else
-            {
-                System.out.println("Running reset thread");
-                runResetThread();
-                System.out.println("done");
-                break;
-            }
-            sleep(50);
-        }
+        return 0;
     }
 
-    public int getCurrentIndex() {
-        return currentIndex;
+    /**
+     * Adds a Point (x- and y-coordinate) to the to-be-fetched queue, which is
+     * handled in order. The Arduino will return to it's start position as soon
+     * as the queue has been completely emptied. Figuring out the shortest route
+     * by itself.
+     *
+     * @param point The X/Y coordinate, X is the column, Y the row.
+     * @throws IndexOutOfBoundsException If the row or column doesn't exist,
+     * this exception is thrown
+     * @deprecated Use retrieveItems
+     */
+    public void addToFetchQueue(Point point) throws IndexOutOfBoundsException
+    {
+
+    }
+
+    /**
+     * Pulls the next entry off the fetch queue and sets the
+     * <code>currentState</code> to <code>STATE_RETRIEVE</code>. If there are no
+     * more destinations to go to the <code>currentDestination</code> is set to
+     * <code>MARKER_END</code>.
+     *
+     * @deprecated Deprecated in favour of internal target selection via
+     * <code>for</code> loop.
+     */
+    private synchronized void selectNextTarget()
+    {
+        return;
+    }
+
+    /**
+     * Starts a pickup, can only be called when not already picking stuff up.
+     *
+     * @deprecated Deprecated in favour of internal pickup in <code>for</code>
+     * loop.
+     */
+    public void startPickup()
+    {
+        return;
     }
 }
