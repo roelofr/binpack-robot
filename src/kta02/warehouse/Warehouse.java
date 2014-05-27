@@ -282,14 +282,26 @@ public class Warehouse implements Runnable
             System.err.println(ex.getMessage());
         }
         //als er meer dan 1 pakbon is, zorg dan dat de order met meerdere pakbonnen gemaakt zijn!
-        if(bestelling.getArtikelen().size() < 6){
-            for(int i = 0; i < BestFit.BestFit(bestelling, Algoritm.tourImprovement(bestelling.getArtikelen(), 0, 0)).size(); i++){
+        if(bestelling.getArtikelen().size() < 5){
+            ArrayList<Integer> idOrder = Algoritm.tourImprovement(bestelling.getArtikelen(),0,0);
+            for(int i = 0; i < BestFit.BestFit(bestelling, idOrder).size(); i++){
                 String bestandsNaam = "";
                 String volledigeKlantNaam = bestelling.getKlant().getVoornaam() + " " + bestelling.getKlant().getAchternaam();
                 bestandsNaam += bestelling.getBestelNummer() + ". " + volledigeKlantNaam  + " - " + i;
                 bestandsNaam += ".xml";
 
                 new XMLWriter(bestelling, i).writeXML(bestandsNaam);
+            }
+            
+            ArrayList<Point> positions = new ArrayList<>();
+            for(int q = 0; q < idOrder.size(); q ++){
+                positions.add(new Point(bestelling.getArtikelen().get(idOrder.get(q)).getLocatie()));
+
+            }
+            
+            for(int q = 0; q < positions.size(); q ++){
+                System.out.println("******");
+                System.out.println(positions.get(q).x + ", " + positions.get(q).y);
             }
        }else{
             JOptionPane.showMessageDialog(emPanel, "Maximaal aantal producten is 5.", "Product amount Error", JOptionPane.ERROR_MESSAGE);

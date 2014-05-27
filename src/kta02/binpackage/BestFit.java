@@ -16,10 +16,10 @@ import kta02.domein.Bestelling;
  */
 public class BestFit {
     
-    public static ArrayList<ArrayList<Integer>> BestFit(Bestelling bestelling, ArrayList<Integer> route){
+    public static ArrayList<ArrayList<Integer>> BestFit(Bestelling bestelling, ArrayList<Integer> route1){
         ArrayList<Integer> sizes = new ArrayList<>();
         ArrayList<ArrayList<Integer>> bins = new ArrayList<>();
-        
+        ArrayList<Integer> route = new ArrayList<>(route1);
         Collections.reverse(route);
         int bestBin;
         

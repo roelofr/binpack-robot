@@ -88,6 +88,11 @@ public class Algoritm {
                 return route;
             }
         }
+        
+        /*for(int i = 0; i < route.size(); i ++){
+            System.out.println("********");
+            System.out.println(article.get(route.get(i)).getLocatie().x + ", " + article.get(route.get(i)).getLocatie().y);
+        }*/
         return route;
     }
 

@@ -137,7 +137,7 @@ public class XMLReader
 
         }
         catch (BadLocationException b){
-            JOptionPane.showMessageDialog(emPanel, "De lay-out van uw bestelling klopt niet. Gebruik deze lay-out: http://pastebin.com/zRw2QRqf", "Lay-out Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(emPanel, "De lay-out van uw bestelling klopt niet. Gebruik deze lay-out: http://pastebin.com/5DFCrQN1", "Lay-out Error", JOptionPane.ERROR_MESSAGE);
         }
         catch (SAXParseException err)
         {
