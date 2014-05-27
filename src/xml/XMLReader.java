@@ -1,11 +1,13 @@
 package xml;
 
 import java.io.File;
+import javax.swing.JOptionPane;
 import javax.swing.text.BadLocationException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import kta02.domein.Bestelling;
 import kta02.domein.Klant;
+import kta02.gui.EmergencyPanel;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -13,8 +15,10 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+
 public class XMLReader
 {
+    private EmergencyPanel emPanel;
 
     private static final int FILTER_NUM = 1;
     private static final int FILTER_WORD = 2;
@@ -132,6 +136,9 @@ public class XMLReader
             }
 
         }
+        catch (BadLocationException b){
+            JOptionPane.showMessageDialog(emPanel, "De lay-out van uw bestelling klopt niet. Gebruik deze lay-out: http://pastebin.com/zRw2QRqf", "Lay-out Error", JOptionPane.ERROR_MESSAGE);
+        }
         catch (SAXParseException err)
         {
             System.out.println("** Parsing error" + ", line "
@@ -151,6 +158,7 @@ public class XMLReader
         }
         return bestelling;
     }
+        
 
     public int getAantalArtikelen()
     {

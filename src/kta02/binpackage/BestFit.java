@@ -7,6 +7,7 @@
 package kta02.binpackage;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import kta02.domein.Bestelling;
 
 /**
@@ -18,6 +19,8 @@ public class BestFit {
     public static ArrayList<ArrayList<Integer>> BestFit(Bestelling bestelling, ArrayList<Integer> route){
         ArrayList<Integer> sizes = new ArrayList<>();
         ArrayList<ArrayList<Integer>> bins = new ArrayList<>();
+        
+        Collections.reverse(route);
         int bestBin;
         
         //* Start with two bins and one binsize
@@ -31,7 +34,7 @@ public class BestFit {
             bestBin = 0;
             
             //* Let's see if there is a bin not full enough to place the item in
-            for(int bin = (bins.size()-2); bin < bins.size() + 1; bin ++){
+            for(int bin = (bins.size()-2); bin < bins.size(); bin ++){
                 if(sizes.get(bin) < sizes.get(bestBin)){
                     bestBin = bin;
                 }
@@ -56,8 +59,7 @@ public class BestFit {
                 bins.get((bins.size()-1)).add(route.get(item));
             }
         }
-        
-        //* Return the bins with the index of the items in **Bestelling
+
         return bins;
     }
     

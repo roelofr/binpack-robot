@@ -55,10 +55,6 @@ public class Algoritm {
         }
         
         route = swapPoints(route, article);
-
-        for (int i = 0; i < route.size(); i++) {
-            System.out.println(article.get(route.get(i)).getArtikelnr());
-        }
         return route;
     }
 
