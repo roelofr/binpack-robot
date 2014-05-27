@@ -16,7 +16,6 @@ import java.util.Date;
 import javax.swing.JPanel;
 import kta02.domein.Artikel;
 import kta02.domein.Bestelling;
-import kta02.domein.Bestelling;
 import kta02.warehouse.RobotMover;
 import kta02.warehouse.Warehouse;
 
@@ -26,6 +25,7 @@ import kta02.warehouse.Warehouse;
  */
 public class RobotDisplay extends JPanel
 {
+
     private final int BOX_SIZE = 75;
     private final int COLUMN_COUNT = 5;
     private final int ROW_COUNT = 4;
@@ -138,17 +138,17 @@ public class RobotDisplay extends JPanel
 
         int arrayLength = order.getArtikelen().size();
         int robotState = RobotMover.STATE_RESET;
-        int node = arrayLength;
+        int node = 0;
         int currentPos = 0;
         if (robotMover != null)
-            {
-            currentPos = robotMover.getQueueLength();
+        {
+            currentPos = robotMover.getCurrentIndex();
             robotState = robotMover.getCurrentState();
-            }
+        }
         for (Artikel item : order.getArtikelen())
         {
             point = item.getLocatie();
-            if (node != currentPos && !(node == arrayLength && currentPos == 0) || robotState == RobotMover.STATE_RESET || robotState == RobotMover.STATE_IDLE)
+            if (node != currentPos && !(node == arrayLength && currentPos == 0) || robotState == RobotMover.STATE_RESET)
             {
                 paintItem(point, 15, g, Color.magenta);
             } else
@@ -164,7 +164,7 @@ public class RobotDisplay extends JPanel
                     if (now % 600 > 300)
                     {
                         paintItem(point, 20, g, Color.red);
-        }
+                    }
                 }
                 node++;
                 lastPoint = point;
@@ -197,14 +197,14 @@ public class RobotDisplay extends JPanel
     }
 
     public void paintBox(Point point, int r, Graphics g, Color color)
-        {
+    {
         int x = point.x;
         int y = point.y;
 
         g.setColor(Color.black);
         g.drawRect(x * BOX_SIZE + BOX_SIZE, y * BOX_SIZE, BOX_SIZE, BOX_SIZE);
         paintItem(point, r, g, color);
-        }
+    }
 
     public void paintConnection(Point start, Point end, Graphics g, Color color)
     {
