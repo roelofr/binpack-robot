@@ -59,7 +59,7 @@ public class CurrentOrder extends JPanel
 
         JPanel inner = new JPanel();
         inner.setOpaque(false);
-        inner.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        inner.setLayout(new BoxLayout(inner, BoxLayout.Y_AXIS));
         add(inner, BorderLayout.CENTER);
 
         PanelHeader clientHeader = new PanelHeader("Klant", PanelHeader.FONT_SECONDARY, PanelHeader.COLOR_SECONDARY);
