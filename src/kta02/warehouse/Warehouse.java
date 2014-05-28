@@ -397,10 +397,12 @@ public class Warehouse implements Runnable
                 }
             }
             Collections.reverse(binOrder);
-            for (int q = 0; q < binOrder.size(); q++)
-            {
-                System.out.println("******");
-                System.out.println(binOrder.get(q));
+            if (DEBUG)
+                for (int q = 0; q < binOrder.size(); q++)
+                {
+                    System.out.println("******");
+                    System.out.println(binOrder.get(q));
+                }
             }
 
 
