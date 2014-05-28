@@ -133,6 +133,10 @@ public class CurrentOrder extends JPanel
             {
                 return;
             }
+            if (!customer.isValid())
+            {
+                return;
+            }
 
             customerName.setText(customer.getVoornaam() + " " + customer.getAchternaam());
             customerAddress.setText(customer.getAdres());

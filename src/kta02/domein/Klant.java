@@ -9,29 +9,9 @@ public class Klant
     private String postcode;
     private String plaats;
 
-    public String getAchternaam()
+    public void setAchternaam(String achternaam)
     {
-        return achternaam;
-    }
-
-    public String getPlaats()
-    {
-        return plaats;
-    }
-
-    public void setVoornaam(String voornaam)
-    {
-        this.voornaam = voornaam;
-    }
-
-    public void setPostcode(String postcode)
-    {
-        this.postcode = postcode;
-    }
-
-    public void setPlaats(String plaats)
-    {
-        this.plaats = plaats;
+        this.achternaam = achternaam;
     }
 
     public void setAdres(String adres)
@@ -39,14 +19,24 @@ public class Klant
         this.adres = adres;
     }
 
-    public void setAchternaam(String achternaam)
+    public void setPlaats(String plaats)
     {
-        this.achternaam = achternaam;
+        this.plaats = plaats;
     }
 
-    public String getPostcode()
+    public void setPostcode(String postcode)
     {
-        return postcode;
+        this.postcode = postcode;
+    }
+
+    public void setVoornaam(String voornaam)
+    {
+        this.voornaam = voornaam;
+    }
+
+    public String getAchternaam()
+    {
+        return achternaam;
     }
 
     public String getAdres()
@@ -54,9 +44,23 @@ public class Klant
         return adres;
     }
 
+    public String getPlaats()
+    {
+        return plaats;
+    }
+
+    public String getPostcode()
+    {
+        return postcode;
+    }
+
     public String getVoornaam()
     {
         return voornaam;
     }
 
+    public boolean isValid()
+    {
+        return voornaam != null && achternaam != null && adres != null && plaats != null && postcode != null;
+    }
 }
