@@ -398,6 +398,7 @@ public class Warehouse implements Runnable
             }
             Collections.reverse(binOrder);
             if (DEBUG)
+            {
                 for (int q = 0; q < binOrder.size(); q++)
                 {
                     System.out.println("******");
