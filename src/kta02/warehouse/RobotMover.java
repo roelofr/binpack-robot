@@ -194,7 +194,7 @@ public class RobotMover extends RobotConfig
     {
         try
         {
-            Thread.sleep(duration);
+            Thread.currentThread().sleep(duration);
 
         } catch (InterruptedException e)
         {
@@ -427,19 +427,29 @@ public class RobotMover extends RobotConfig
         }
 
         moveMotor('z', -3);
-        sleep(RESET_TIME_Z);
+        sleep(2500);
         moveMotor('z', 0);
-        sleep(50);
+        sleep(500);
 
-        moveMotor('y', 2);
-        sleep(RESET_TIME_Y);
+        moveMotor('y', 3);
+        sleep(3000);
         moveMotor('y', 0);
-        sleep(50);
+        sleep(500);
 
         moveMotor('x', -2);
-        sleep(RESET_TIME_X);
+        sleep(4000);
         moveMotor('x', 0);
-        sleep(50);
+        sleep(500);
+        
+        moveMotor('x', 2);
+        sleep(Math.round(MOVE_X_SYNC * 1100));
+        moveMotor('x', 0);
+        sleep(500);
+        
+        moveMotor('y', -1);
+        sleep(Math.round(MOVE_Y_SYNC * 400));
+        moveMotor('y', 0);
+        sleep(500);
 
         currentState = STATE_IDLE;
     }
@@ -455,13 +465,15 @@ public class RobotMover extends RobotConfig
         }
 
         this.numberOfPackets = 0;
-
-        this.fetchQueue = new ArrayList<Point>();
+        
+        /*
+        this.fetchQueue.empty();
         this.fetchQueue.add(new Point(1, 1));
         this.fetchQueue.add(new Point(1, 2));
         this.fetchQueue.add(new Point(4, 2));
         this.fetchQueue.add(new Point(2, 0));
-
+        */
+        
         // always go back to zero
         this.fetchQueue.add(new Point(0, 0));
 
