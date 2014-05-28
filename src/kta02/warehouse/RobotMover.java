@@ -24,7 +24,6 @@ public class RobotMover extends RobotConfig
 
     private int currentState;
 
-    private Point currentDestination;
     private int currentIndex = 0;
 
     private Thread resetThread;
@@ -440,12 +439,12 @@ public class RobotMover extends RobotConfig
         sleep(4000);
         moveMotor('x', 0);
         sleep(500);
-        
+
         moveMotor('x', 2);
         sleep(Math.round(MOVE_X_SYNC * 1100));
         moveMotor('x', 0);
         sleep(500);
-        
+
         moveMotor('y', -1);
         sleep(Math.round(MOVE_Y_SYNC * 400));
         moveMotor('y', 0);
@@ -465,15 +464,14 @@ public class RobotMover extends RobotConfig
         }
 
         this.numberOfPackets = 0;
-        
+
         /*
-        this.fetchQueue.empty();
-        this.fetchQueue.add(new Point(1, 1));
-        this.fetchQueue.add(new Point(1, 2));
-        this.fetchQueue.add(new Point(4, 2));
-        this.fetchQueue.add(new Point(2, 0));
-        */
-        
+         this.fetchQueue.empty();
+         this.fetchQueue.add(new Point(1, 1));
+         this.fetchQueue.add(new Point(1, 2));
+         this.fetchQueue.add(new Point(4, 2));
+         this.fetchQueue.add(new Point(2, 0));
+         */
         // always go back to zero
         this.fetchQueue.add(new Point(0, 0));
 
@@ -586,11 +584,6 @@ public class RobotMover extends RobotConfig
 
     }
 
-    public int getCurrentIndex()
-    {
-        return currentIndex;
-    }
-
     /**
      * Returns the current state, which is one of the STATE_ contants.
      *
@@ -599,6 +592,26 @@ public class RobotMover extends RobotConfig
     public int getCurrentState()
     {
         return currentState;
+    }
+
+    /**
+     * Returns where in the queue the robot currently is.
+     *
+     * @return
+     */
+    public int getCurrentIndex()
+    {
+        return currentIndex;
+    }
+
+    /**
+     * Returns the current queue
+     *
+     * @return The queue
+     */
+    public ArrayList<Point> getFetchQueue()
+    {
+        return fetchQueue;
     }
 
     /**

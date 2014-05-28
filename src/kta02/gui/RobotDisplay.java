@@ -12,10 +12,9 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.util.ArrayList;
 import java.util.Date;
 import javax.swing.JPanel;
-import kta02.domein.Artikel;
-import kta02.domein.Bestelling;
 import kta02.warehouse.RobotMover;
 import kta02.warehouse.Warehouse;
 
@@ -33,7 +32,6 @@ public class RobotDisplay extends JPanel
     private final long UPDATE_DELAY = 2000;
 
     Warehouse wh;
-    Bestelling order;
     RobotMover robotMover;
 
     long lastOrderUpdate;
@@ -43,7 +41,6 @@ public class RobotDisplay extends JPanel
 
         this.wh = wh;
         robotMover = wh.getRobotMover();
-        order = wh.getBestelling();
 
         int drawingHeight = (ROW_COUNT + 2) * BOX_SIZE + 20;
         int drawingWidth = (COLUMN_COUNT + 1) * BOX_SIZE + 20;
@@ -94,17 +91,12 @@ public class RobotDisplay extends JPanel
 
     private synchronized boolean getObjects()
     {
-        if (order == null || new Date().getTime() < lastOrderUpdate + UPDATE_DELAY)
-        {
-            lastOrderUpdate = new Date().getTime();
-            order = wh.getBestelling();
-        }
         if (robotMover == null)
         {
             robotMover = wh.getRobotMover();
         }
 
-        if (order == null || robotMover == null)
+        if (robotMover == null)
         {
             return false;
         }
@@ -136,7 +128,9 @@ public class RobotDisplay extends JPanel
         Point point;
         Point lastPoint = new Point(-1, 0);
 
-        int arrayLength = order.getArtikelen().size();
+        ArrayList<Point> fetchQueue = robotMover.getFetchQueue();
+
+        int arrayLength = fetchQueue.size();
         int robotState = RobotMover.STATE_RESET;
         int node = 0;
         int currentPos = 0;
@@ -145,30 +139,29 @@ public class RobotDisplay extends JPanel
             currentPos = robotMover.getCurrentIndex();
             robotState = robotMover.getCurrentState();
         }
-        for (Artikel item : order.getArtikelen())
+        for (Point item : fetchQueue)
         {
-            point = item.getLocatie();
-            if (node != currentPos && !(node == arrayLength && currentPos == 0) || robotState == RobotMover.STATE_RESET)
+            if (node != currentPos || robotState == RobotMover.STATE_RESET)
             {
-                paintItem(point, 15, g, Color.magenta);
+                paintItem(item, 15, g, Color.magenta);
             } else
             {
-                paintItem(point, 15, g, Color.red);
+                paintItem(item, 15, g, Color.red);
                 double now = (new Date().getTime() % 1000.0);
                 if (robotState == RobotMover.STATE_RETRIEVE)
                 {
-                    paintConnection(point, lastPoint, g, Color.red);
-                    drawIntermediateItem(point, lastPoint, now, g, Color.yellow);
+                    paintConnection(item, lastPoint, g, Color.red);
+                    drawIntermediateItem(item, lastPoint, now, g, Color.yellow);
                 } else
                 {
                     if (now % 600 > 300)
                     {
-                        paintItem(point, 20, g, Color.red);
+                        paintItem(item, 20, g, Color.red);
                     }
                 }
-                node++;
-                lastPoint = point;
             }
+            node++;
+            lastPoint = item;
         }
 
         if (robotState == RobotMover.STATE_RESET)
