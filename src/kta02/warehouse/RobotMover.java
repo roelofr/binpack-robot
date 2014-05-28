@@ -73,6 +73,8 @@ public class RobotMover extends RobotConfig
         warehouse = wh;
         currentState = STATE_RESET;
 
+        fetchQueue = new ArrayList<>();
+
         retrieveThread = new Thread(new robotMoveThread());
         resetThread = new Thread(new robotResetThread());
     }

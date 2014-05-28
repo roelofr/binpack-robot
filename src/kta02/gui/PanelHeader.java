@@ -18,8 +18,16 @@ import javax.swing.JPanel;
 public class PanelHeader extends JPanel
 {
 
-    private static final Font DEF_FONT = new Font("Arial", Font.BOLD, 18);
-    private static final Color DEF_COLOR = new Color(230, 240, 255);
+    public static final Color COLOR_PRIMARY = new Color(230, 240, 255);
+    public static final Color COLOR_SECONDARY = new Color(240, 247, 255);
+    public static final Color COLOR_TERTIARY = new Color(245, 250, 255);
+
+    public static final Font FONT_PRIMARY = new Font("Arial", Font.BOLD, 18);
+    public static final Font FONT_SECONDARY = new Font("Arial", Font.BOLD, 15);
+    public static final Font FONT_TERTIARY = new Font("Arial", Font.ITALIC, 14);
+
+    private static final Font DEF_FONT = FONT_PRIMARY;
+    private static final Color DEF_COLOR = COLOR_PRIMARY;
 
     JLabel header;
 
