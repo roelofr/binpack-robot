@@ -60,7 +60,7 @@ public class RobotDisplay extends JPanel
     class RobotDisplayUpdater implements Runnable
     {
 
-        private RobotDisplay display;
+        private final RobotDisplay display;
 
         public RobotDisplayUpdater(RobotDisplay disp)
         {
@@ -125,39 +125,92 @@ public class RobotDisplay extends JPanel
             return;
         }
 
-        Point point;
-        Point lastPoint = new Point(-1, 0);
+        Point lastPoint = new Point(0, 0);
 
         ArrayList<Point> fetchQueue = robotMover.getFetchQueue();
 
-        int arrayLength = fetchQueue.size();
-        int robotState = RobotMover.STATE_RESET;
         int node = 0;
-        int currentPos = 0;
-        if (robotMover != null)
+
+        int currentPos = robotMover.getCurrentIndex();
+        int robotState = robotMover.getCurrentState();
+
+        int pointX = robotMover.getCurrentPosX();
+        int pointY = robotMover.getCurrentPosY();
+
+        boolean isEndPos;
+
+        if (robotState == RobotMover.STATE_DEPOSIT)
         {
-            currentPos = robotMover.getCurrentIndex();
-            robotState = robotMover.getCurrentState();
+            pointX = -1;
+            pointY = 0;
         }
+        if (pointX >= -1 && pointX <= COLUMN_COUNT)
+        {
+            if (pointY >= 0 && pointY <= ROW_COUNT)
+            {
+                g.setColor(new Color(255, 255, 200));
+                g.fillRect(BOX_SIZE + pointX * BOX_SIZE + 1, pointY * BOX_SIZE + 1, BOX_SIZE - 1, BOX_SIZE - 1);
+                paintBox(new Point(pointX, pointY), 15, g, pointX == -1 ? Color.green : Color.lightGray);
+            }
+        }
+
         for (Point item : fetchQueue)
         {
-            if (node != currentPos || robotState == RobotMover.STATE_RESET)
+            isEndPos = node == (fetchQueue.size() - 1);
+
+            if (isEndPos)
             {
-                paintItem(item, 15, g, Color.magenta);
-            } else
+                item = new Point(-1, 0);
+            }
+
+            if (node == currentPos && robotState != RobotMover.STATE_RESET)
             {
-                paintItem(item, 15, g, Color.red);
                 double now = (new Date().getTime() % 1000.0);
-                if (robotState == RobotMover.STATE_RETRIEVE)
+                if (isEndPos && robotState == RobotMover.STATE_RETRIEVE)
                 {
-                    paintConnection(item, lastPoint, g, Color.red);
-                    drawIntermediateItem(item, lastPoint, now, g, Color.yellow);
+                    Point startPos = new Point(0, 0);
+
+                    Point interim = new Point(startPos.x, lastPoint.y);
+
+                    paintConnection(interim, lastPoint, g, Color.red);
+                    drawIntermediateItem(interim, lastPoint, now, g, Color.yellow);
+
+                    paintConnection(startPos, interim, g, Color.red);
+                    drawIntermediateItem(startPos, interim, now, g, Color.yellow);
+
+                    paintConnection(item, startPos, g, Color.red);
+                    drawIntermediateItem(item, startPos, now, g, Color.yellow);
+
+                    // Paint nodes over
+                    paintItem(item, 15, g, Color.green);
+                    paintItem(lastPoint, 15, g, Color.magenta);
+                } else if (robotState == RobotMover.STATE_RETRIEVE && !isEndPos)
+                {
+                    Point interim = new Point(item.x, lastPoint.y);
+
+                    paintConnection(interim, lastPoint, g, Color.red);
+                    drawIntermediateItem(interim, lastPoint, now, g, Color.yellow);
+
+                    paintConnection(item, interim, g, Color.red);
+                    drawIntermediateItem(item, interim, now, g, Color.yellow);
+
+                    // Paint nodes over
+                    paintItem(item, 15, g, Color.red);
+                    paintItem(lastPoint, 15, g, node == 0 ? Color.lightGray : Color.magenta);
+
                 } else
                 {
                     if (now % 600 > 300)
                     {
-                        paintItem(item, 20, g, Color.red);
+                        paintItem(item, 30, g, Color.yellow);
+                        paintItem(item, 15, g, isEndPos ? Color.green : Color.red);
                     }
+                }
+            } else
+            {
+                if (!isEndPos)
+                {
+                    paintItem(item, 15, g, Color.magenta);
                 }
             }
             node++;

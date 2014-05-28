@@ -614,6 +614,16 @@ public class RobotMover extends RobotConfig
         return fetchQueue;
     }
 
+    public int getCurrentPosX()
+    {
+        return currentPosX;
+    }
+
+    public int getCurrentPosY()
+    {
+        return currentPosY;
+    }
+
     /**
      * DEPRECATED FUNCTIONS
      */
