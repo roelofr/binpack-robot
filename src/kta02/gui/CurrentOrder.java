@@ -80,7 +80,13 @@ public class CurrentOrder extends JPanel
         JLabel customerZip;
         JLabel customerCity;
 
-        public CurrentOrderClient()
+        public CurrentOrderClient(Klant customer)
+        {
+            createElements();
+            setCustomer(customer);
+        }
+
+        private void createElements()
         {
             setLayout(new GridBagLayout());
 
@@ -121,13 +127,7 @@ public class CurrentOrder extends JPanel
 
         }
 
-        public CurrentOrderClient(Klant customer)
-        {
-            super();
-            setCustomer(customer);
-        }
-
-        public void updateFields()
+        private void updateFields()
         {
             if (customer == null)
             {
@@ -144,13 +144,10 @@ public class CurrentOrder extends JPanel
             customerCity.setText(customer.getPlaats());
         }
 
-        public void setCustomer(Klant klant)
+        public void setCustomer(Klant customer)
         {
-            if (klant != null)
-            {
-                this.customer = klant;
-                updateFields();
-            }
+            this.customer = customer;
+            updateFields();
         }
 
     }
