@@ -5,6 +5,7 @@ import java.awt.Point;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -384,6 +385,24 @@ public class Warehouse implements Runnable
                 positions.add(new Point(temporaryBestelling.getArtikelen().get(idOrder.get(q)).getLocatie()));
 
             }
+            
+            ArrayList<Integer> binOrder = new ArrayList<>();
+            for (int i = 0; i < idOrder.size(); i++) {
+                for(int x = 0; x < BestFit.BestFit(temporaryBestelling, idOrder).size(); x++){
+                    for(int y = 0; y < BestFit.BestFit(temporaryBestelling, idOrder).get(x).size(); y++){
+                        if(BestFit.BestFit(temporaryBestelling, idOrder).get(x).get(y).equals(idOrder.get(i))){
+                            binOrder.add(x);
+                        }
+                    }
+                }
+            }
+            Collections.reverse(binOrder);
+            for (int q = 0; q < binOrder.size(); q++)
+            {
+                System.out.println("******");
+                System.out.println(binOrder.get(q));
+            }
+
 
             if (DEBUG)
             {
