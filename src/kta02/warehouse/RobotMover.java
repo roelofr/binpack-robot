@@ -402,7 +402,7 @@ public class RobotMover extends RobotConfig
         moveMotor('y', 0);
         sleep(1000);
         moveMotor('x', -2);
-        sleep(1200);
+        sleep(1300);
         moveMotor('x', 0);
         sleep(1000);
 

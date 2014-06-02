@@ -16,7 +16,7 @@ public abstract class RobotConfig
     /**
      * Duration of move in between regular columns
      */
-    protected final float MOVE_X_SYNC = 0.99f;
+    protected final float MOVE_X_SYNC = 0.95f;
     protected final float MOVE_Y_SYNC = 0.94f;
 
     protected final int MOVE_X_RIGHT = 730;
