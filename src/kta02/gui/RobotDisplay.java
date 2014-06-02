@@ -135,7 +135,6 @@ public class RobotDisplay extends JPanel
 
         private String durationToMinSec(int time)
         {
-            //time /= 1000;
             int mins = (int) Math.floor(time / 60);
             int secs = time % 60;
 
@@ -191,7 +190,7 @@ public class RobotDisplay extends JPanel
                             duration += timeLink.getTravelTime();
                         } else
                         {
-                            duration = timeLink.getArrivalTime() - new Date().getTime();
+                            duration = timeLink.getArrivalTime() - (new Date().getTime() / 1000);
                         }
                         table.setValueAt(durationToMinSec(Math.max(0, duration)), i, 2);
                         if (table.getValueAt(i, 0) == "")
