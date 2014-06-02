@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import javax.swing.JPanel;
 import javax.swing.JTable;
+import kta02.domein.Artikel;
+import kta02.domein.PointTimeLink;
 import kta02.warehouse.RobotMover;
 import kta02.warehouse.Warehouse;
 
@@ -62,6 +64,18 @@ public class RobotDisplay extends JPanel
 
         JTable table;
 
+        long startTime;
+
+        ArrayList<PointTimeLink> times;
+        ArrayList<Artikel> artikelen;
+
+        private final int CALC_NO_CHANGE = 0;
+        private final int CALC_CLEAR = 1;
+        private final int CALC_UPDATE = 2;
+
+        private final int TABLE_ROWS = 10;
+        private final int TABLE_COLS = 3;
+
         public RobotDisplayTable()
         {
 
@@ -70,21 +84,156 @@ public class RobotDisplay extends JPanel
 
             add(new PanelHeader("Artikel overzicht", PanelHeader.FONT_SECONDARY, PanelHeader.COLOR_SECONDARY), BorderLayout.NORTH);
 
-            table = new JTable(10, 3);
-            add(table, BorderLayout.CENTER);
+            JPanel stuphContainer = new JPanel(new BorderLayout());
+            add(stuphContainer, BorderLayout.CENTER);
 
-            table.setValueAt("Artikel", 0, 0);
-            table.setValueAt("Status", 1, 0);
-            table.setValueAt("ETA", 2, 0);
+            EasyGUI.addFiller(stuphContainer, EasyGUI.FILLER_LARGE, BorderLayout.NORTH);
+            EasyGUI.addFiller(stuphContainer, EasyGUI.FILLER_LARGE, BorderLayout.EAST);
+            EasyGUI.addFiller(stuphContainer, EasyGUI.FILLER_LARGE, BorderLayout.SOUTH);
+            EasyGUI.addFiller(stuphContainer, EasyGUI.FILLER_LARGE, BorderLayout.WEST);
+
+            table = new JTable(TABLE_ROWS, TABLE_COLS);
+            stuphContainer.add(table, BorderLayout.CENTER);
+
+            table.setValueAt("Artikelnummer", 0, 0);
+            table.setValueAt("Beschrijving", 0, 1);
+            table.setValueAt("ETA", 0, 2);
+
+            table.setCellSelectionEnabled(false);
 
             updater = new Thread(this);
             updater.start();
         }
 
+        private int calculateRoute()
+        {
+            if (wh.getBestelling() == null)
+            {
+                times.clear();
+                artikelen.clear();
+                return CALC_NO_CHANGE;
+            }
+
+            ArrayList<PointTimeLink> ptls = wh.getRobotMover().getFetchTimeLinks();
+            ArrayList<Artikel> items = wh.getBestelling().getArtikelen();
+
+            if (ptls == null || ptls.isEmpty())
+            {
+                return CALC_CLEAR;
+            }
+
+            long newStartTime = wh.getRobotMover().getQueueFetchStart();
+
+            times = ptls;
+            artikelen = items;
+
+            int returnValue = (this.startTime == newStartTime) ? CALC_NO_CHANGE : CALC_UPDATE;
+            this.startTime = newStartTime;
+
+            return returnValue;
+        }
+
+        private String durationToMinSec(int time)
+        {
+            //time /= 1000;
+            int mins = (int) Math.floor(time / 60);
+            int secs = time % 60;
+
+            String out = "";
+            out += mins < 10 ? "0" + mins : mins;
+            out += ":";
+            out += secs < 10 ? "0" + secs : secs;
+            return out;
+        }
+
+        private String durationToMinSec(long time)
+        {
+            return durationToMinSec((int) time);
+        }
+
         @Override
         public void run()
         {
+            while (!Thread.currentThread().isInterrupted())
+            {
+                int fetchReturn = calculateRoute();
+                if (fetchReturn == CALC_CLEAR)
+                {
+                    int i = 1, j = 0;
+                    while (i < TABLE_ROWS)
+                    {
+                        j = 0;
+                        while (j < TABLE_COLS)
+                        {
+                            System.out.println("(" + i + ", " + j + ")");
+                            table.setValueAt("", i, j);
+                            j++;
+                        }
+                        i++;
+                    }
+                    return;
+                }
 
+                if (times.isEmpty())
+                {
+                    return;
+                }
+
+                if (fetchReturn == CALC_NO_CHANGE)
+                {
+                    int i = 1;
+                    long duration = 0;
+                    int state = wh.getRobotMover().getCurrentState();
+                    for (PointTimeLink timeLink : times)
+                    {
+                        if (state == RobotMover.STATE_IDLE || state == RobotMover.STATE_RESET)
+                        {
+                            duration += timeLink.getTravelTime();
+                        } else
+                        {
+                            duration = timeLink.getArrivalTime() - new Date().getTime();
+                        }
+                        table.setValueAt(durationToMinSec(Math.max(0, duration)), i, 2);
+                        if (table.getValueAt(i, 0) == "")
+                        {
+                            fetchReturn = CALC_UPDATE;
+                        }
+                        i++;
+                    }
+                }
+                if (fetchReturn == CALC_UPDATE)
+                {
+                    Artikel art;
+                    int row = 1;
+                    for (PointTimeLink timeLink : times)
+                    {
+                        art = null;
+                        for (Artikel artikel : artikelen)
+                        {
+                            if (artikel.getLocatie() == timeLink.getPoint())
+                            {
+                                art = artikel;
+                                break;
+                            }
+                        }
+                        if (art == null)
+                        {
+                            continue;
+                        }
+
+                        table.setValueAt(art.getArtikelnr() + "", row, 0);
+                        table.setValueAt(art.getBeschrijving() + "", row, 1);
+                    }
+                }
+
+                try
+                {
+                    Thread.currentThread().sleep(800);
+                } catch (InterruptedException e)
+                {
+                    // Meh
+                }
+            }
         }
     }
 
