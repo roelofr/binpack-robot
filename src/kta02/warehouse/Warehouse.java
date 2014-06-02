@@ -416,7 +416,7 @@ public class Warehouse implements Runnable
                 }
             }
 
-            mover.retrieveItems(positions);
+            mover.retrieveItems(positions, binOrder);
         } else
         {
             JOptionPane.showMessageDialog(emPanel, "Maximaal aantal producten is 5.", "Product amount Error", JOptionPane.ERROR_MESSAGE);

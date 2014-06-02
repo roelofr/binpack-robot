@@ -60,6 +60,7 @@ public class RobotMover extends RobotConfig
     private boolean locationBin;
 
     private ArrayList<Point> fetchQueue;
+    private ArrayList<Integer> binQueue;
 
     /**
      * Sets up everything and starts the reset thread, so the robot is always at
@@ -73,6 +74,7 @@ public class RobotMover extends RobotConfig
         currentState = STATE_RESET;
 
         fetchQueue = new ArrayList<>();
+        binQueue = new ArrayList<>();
 
         retrieveThread = new Thread(new robotMoveThread());
         resetThread = new Thread(new robotResetThread());
@@ -167,15 +169,22 @@ public class RobotMover extends RobotConfig
      * from within Warehouse
      * @param list
      */
-    public void retrieveItems(ArrayList<Point> list)
+    public void retrieveItems(ArrayList<Point> list, ArrayList<Integer> bins)
     {
         if (!fetchQueue.isEmpty())
         {
             return;
         }
-
+        if (!binQueue.isEmpty())
+        {
+            return;
+        }
+        
         fetchQueue.clear();
         fetchQueue.addAll(list);
+        
+        binQueue.clear();
+        binQueue.addAll(bins);
 
         if (!retrieveThread.isAlive())
         {
@@ -372,7 +381,7 @@ public class RobotMover extends RobotConfig
     {
         this.currentState = STATE_PICKUP;
         moveMotor('z', 3);
-        sleep(850);
+        sleep(900);
         moveMotor('z', 0);
         sleep(500);
         moveMotor('y', 3);
@@ -380,7 +389,7 @@ public class RobotMover extends RobotConfig
         moveMotor('y', 0);
         sleep(500);
         moveMotor('z', -3);
-        sleep(1200);
+        sleep(1600);
         moveMotor('z', 0);
         sleep(500);
 
@@ -416,6 +425,29 @@ public class RobotMover extends RobotConfig
         moveMotor('y', 0);
 
     }
+    
+    private synchronized void dropInBins(){
+        moveMotor('z', -3);
+        sleep(550);
+        moveMotor('z', 0);
+        sleep(500);
+            
+        for(Integer bin : this.binQueue){
+            if(bin == 0){
+                moveMotor('b', -3);
+            } else if(bin == 1){
+                moveMotor('b', 3);
+            }
+            sleep(1500);
+            moveMotor('b', 0);
+            sleep(500);
+            
+            moveMotor('z', -3);
+            sleep(120);
+            moveMotor('z', 0);
+            sleep(500);
+        }
+    }
 
     private synchronized void runResetter()
     {
@@ -424,27 +456,32 @@ public class RobotMover extends RobotConfig
         {
             return;
         }
-
+        // reset arm
         moveMotor('z', -3);
         sleep(2500);
         moveMotor('z', 0);
         sleep(500);
-
+        
+        // reset y and bins
         moveMotor('y', 3);
+        moveMotor('b', -3);
         sleep(3000);
         moveMotor('y', 0);
+        moveMotor('b', 0);
         sleep(500);
 
+        //reset x
         moveMotor('x', -2);
         sleep(4000);
         moveMotor('x', 0);
         sleep(500);
-
+        
+        
+        // move to 0,0
         moveMotor('x', 2);
         sleep(Math.round(MOVE_X_SYNC * 1100));
         moveMotor('x', 0);
         sleep(500);
-
         moveMotor('y', -1);
         sleep(Math.round(MOVE_Y_SYNC * 400));
         moveMotor('y', 0);
@@ -464,14 +501,7 @@ public class RobotMover extends RobotConfig
         }
 
         this.numberOfPackets = 0;
-
-        /*
-         this.fetchQueue.empty();
-         this.fetchQueue.add(new Point(1, 1));
-         this.fetchQueue.add(new Point(1, 2));
-         this.fetchQueue.add(new Point(4, 2));
-         this.fetchQueue.add(new Point(2, 0));
-         */
+        
         // always go back to zero
         this.fetchQueue.add(new Point(0, 0));
 
@@ -515,6 +545,9 @@ public class RobotMover extends RobotConfig
             }
             this.currentIndex++;
         }
+        
+        // drop all the retrieved packages in the bins
+        this.dropInBins();
 
         return true;
     }
