@@ -35,6 +35,11 @@ import kta02.xml.XMLWriter;
 public class Warehouse implements Runnable
 {
 
+    /**
+     * Debug flag, set to TRUE to enable debug systems
+     */
+    public static final boolean DEBUG = true;
+
     private final long DB_KEEP_ALIVE = 30 * 1000;
 
     private XMLReader reader;
@@ -42,8 +47,6 @@ public class Warehouse implements Runnable
     private Bestelling bestelling;
 
     private DatabaseProcessor dbProcessor;
-
-    public static final boolean DEBUG = true;
 
     private static Warehouse warehouse;
 
@@ -121,11 +124,29 @@ public class Warehouse implements Runnable
                     dbCon.linkToQueryCollector();
                 } catch (SQLException ex)
                 {
-                    UI.dispose();
                     dialog.dispose();
-                    JOptionPane.showMessageDialog(null, "Er kon geen verbinding met de database gemaakt worden!\nDe applicatie zal nu afsluiten.", "Databaseverbinding fout!", JOptionPane.WARNING_MESSAGE);
-                    System.exit(1);
-                    return;
+
+                    boolean shouldClose = false;
+
+                    String noConnError = "Er kon geen verbinding met de database gemaakt worden!\nDe applicatie zal nu afsluiten.";
+                    String noConnTitle = "Verbinden mislukt!";
+
+                    if (!DEBUG)
+                    {
+                        shouldClose = true;
+                        JOptionPane.showMessageDialog(null, noConnError, noConnTitle, JOptionPane.WARNING_MESSAGE);
+                    } else
+                    {
+                        int returnValue = JOptionPane.showConfirmDialog(null, noConnError, noConnTitle, JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+                        shouldClose = returnValue != 2;
+                    }
+                    if (shouldClose)
+                    {
+
+                        UI.dispose();
+                        System.exit(1);
+                        return;
+                    }
                 }
                 dialog.dispose();
                 UI.setVisible(true);
@@ -300,7 +321,7 @@ public class Warehouse implements Runnable
         // Continue untill interrupted
         while (!Thread.currentThread().isInterrupted())
         {
-            if (lastKeepAlive < new Date().getTime())
+            if (lastKeepAlive < new Date().getTime() && DatabaseQueryCollector.getInstance() != null)
             {
                 lastKeepAlive = new Date().getTime() + DB_KEEP_ALIVE;
                 DatabaseQueryCollector.getInstance().sendKeepAlive();
@@ -385,12 +406,16 @@ public class Warehouse implements Runnable
                 positions.add(new Point(temporaryBestelling.getArtikelen().get(idOrder.get(q)).getLocatie()));
 
             }
-            
+
             ArrayList<Integer> binOrder = new ArrayList<>();
-            for (int i = 0; i < idOrder.size(); i++) {
-                for(int x = 0; x < BestFit.BestFit(temporaryBestelling, idOrder).size(); x++){
-                    for(int y = 0; y < BestFit.BestFit(temporaryBestelling, idOrder).get(x).size(); y++){
-                        if(BestFit.BestFit(temporaryBestelling, idOrder).get(x).get(y).equals(idOrder.get(i))){
+            for (int i = 0; i < idOrder.size(); i++)
+            {
+                for (int x = 0; x < BestFit.BestFit(temporaryBestelling, idOrder).size(); x++)
+                {
+                    for (int y = 0; y < BestFit.BestFit(temporaryBestelling, idOrder).get(x).size(); y++)
+                    {
+                        if (BestFit.BestFit(temporaryBestelling, idOrder).get(x).get(y).equals(idOrder.get(i)))
+                        {
                             binOrder.add(x);
                         }
                     }
@@ -405,7 +430,6 @@ public class Warehouse implements Runnable
                     System.out.println(binOrder.get(q));
                 }
             }
-
 
             if (DEBUG)
             {

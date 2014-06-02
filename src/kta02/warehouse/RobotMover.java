@@ -8,7 +8,9 @@ package kta02.warehouse;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import kta02.comm.ArduinoConnection;
+import kta02.domein.PointTimeLink;
 
 /**
  *
@@ -25,6 +27,7 @@ public class RobotMover extends RobotConfig
     private int currentState;
 
     private int currentIndex = 0;
+    private long queueFetchStart = 0;
 
     private Thread resetThread;
     private Thread retrieveThread;
@@ -61,6 +64,12 @@ public class RobotMover extends RobotConfig
 
     private ArrayList<Point> fetchQueue;
     private ArrayList<Integer> binQueue;
+
+    private ArrayList<PointTimeLink> fetchTimeLinks;
+
+    private long queueDuration;
+
+    private final long ITEM_PICKUP_DURATION = Math.round(850 + 500 + 500 + 1200 + 500 + MOVE_Y_SYNC * 300);
 
     /**
      * Sets up everything and starts the reset thread, so the robot is always at
@@ -190,6 +199,9 @@ public class RobotMover extends RobotConfig
         {
             retrieveThread.start();
         }
+
+        // Calculate the travel time
+        this.calculateTravelTime();
     }
 
     /**
@@ -208,6 +220,71 @@ public class RobotMover extends RobotConfig
         {
             // Say NO to the error!
         }
+    }
+
+    private synchronized void calculateTravelTime()
+    {
+        if (fetchTimeLinks == null)
+        {
+            fetchTimeLinks = new ArrayList<>();
+        }
+        fetchTimeLinks.clear();
+
+        long start = 0;
+        long duration;
+        Point position = new Point(0, 0);
+        Point moveOffset;
+
+        for (Point point : fetchQueue)
+        {
+            duration = 0;
+            moveOffset = new Point(
+                    Math.abs(point.x - position.x),
+                    Math.abs(point.y - position.y)
+            );
+
+            if (moveOffset.x < 0)
+            {
+                duration += Math.round(MOVE_X_SYNC * MOVE_X_LEFT + 1000) * (moveOffset.x * -1);
+            } else if (moveOffset.x > 0)
+            {
+                duration += Math.round(MOVE_X_SYNC * MOVE_X_RIGHT + 1000) * moveOffset.x;
+            }
+
+            if (moveOffset.y < 0)
+            {
+                duration += Math.round(MOVE_Y_SYNC * MOVE_Y_UP + 1000) * (moveOffset.y * -1);
+            } else if (moveOffset.y > 0)
+            {
+                duration += Math.round(MOVE_Y_SYNC * MOVE_Y_DOWN + 1000) * moveOffset.y;
+            }
+            duration /= 1000;
+            fetchTimeLinks.add(new PointTimeLink(point, duration, duration));
+            start += duration + ITEM_PICKUP_DURATION;
+
+        }
+
+        queueDuration = start - queueFetchStart;
+
+    }
+
+    private synchronized void calculateArrivalTime()
+    {
+        if (fetchTimeLinks == null)
+        {
+            calculateTravelTime();
+        }
+
+        long start = queueFetchStart;
+        long duration = 0;
+
+        for (int i = 0; i < fetchTimeLinks.size(); i++)
+        {
+            duration = fetchTimeLinks.get(i).getTravelTime();
+            fetchTimeLinks.get(i).setArrivalTime(start + duration);
+            start += duration + ITEM_PICKUP_DURATION;
+        }
+
     }
 
     /**
@@ -500,6 +577,11 @@ public class RobotMover extends RobotConfig
             return false;
         }
 
+        this.queueFetchStart = new Date().getTime();
+
+        // Update all items to match the expected pickup time
+        this.calculateArrivalTime();
+
         this.numberOfPackets = 0;
         
         // always go back to zero
@@ -655,6 +737,21 @@ public class RobotMover extends RobotConfig
     public int getCurrentPosY()
     {
         return currentPosY;
+    }
+
+    public long getQueueFetchStart()
+    {
+        return queueFetchStart;
+    }
+
+    public long getQueueDuration()
+    {
+        return queueDuration;
+    }
+
+    public ArrayList<PointTimeLink> getFetchTimeLinks()
+    {
+        return fetchTimeLinks;
     }
 
     /**

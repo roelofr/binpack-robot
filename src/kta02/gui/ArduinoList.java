@@ -38,15 +38,14 @@ public final class ArduinoList extends JPanel implements ActionListener
         warehouse = warehouseConnection;
 
         setLayout(new BorderLayout());
-        setBackground(new Color(240, 245, 255));
 
         PanelHeader hdr = new PanelHeader("Verbonden apparaten", new Font("Arial", Font.BOLD, 16), new Color(200, 240, 255));
 
         arduinoPanel = new JPanel();
-        arduinoPanel.setOpaque(false);
         arduinoPanel.setLayout(new BoxLayout(arduinoPanel, BoxLayout.Y_AXIS));
 
         resetButton = new JButton("Refresh");
+        resetButton.setMinimumSize(new Dimension(10, 60));
         resetButton.addActionListener(this);
         resetButton.setEnabled(false);
 
@@ -74,13 +73,12 @@ public final class ArduinoList extends JPanel implements ActionListener
         {
             for (ArduinoNode an : arNodes)
             {
-                arduinoPanel.remove(an);
                 an.setVisible(false);
             }
             arNodes.clear();
-            arduinoPanel.revalidate();
         }
         arduinoPanel.removeAll();
+        arduinoPanel.revalidate();
 
         if (arduinoList == null || arduinoList.isEmpty())
         {

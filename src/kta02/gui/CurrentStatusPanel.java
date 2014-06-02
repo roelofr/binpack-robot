@@ -50,11 +50,8 @@ public class CurrentStatusPanel extends JPanel
 
         products = new ArrayList<>();
 
-        JPanel cake = new JPanel();
-
         status = new RobotDisplay(warehouse);
-        twoColumn.add(cake);
-        cake.add(status);
+        twoColumn.add(status);
     }
 
 }

@@ -52,6 +52,23 @@ public abstract class EasyGUI
     /**
      * Adds a Filler (<code>Box.Filler</code>) of a flexible size to the
      * Component given as first argument with the minimum size given in the
+     * second argument at the position given in argument 3. If the 4th argument
+     * is true, the preferred size is set to the largest size possible.
+     *
+     * @param parent
+     * @param fillerSize
+     * @param location
+     * @param startAtLargest
+     */
+    public static void addFlexibleFiller(JComponent parent, Dimension fillerSize, String location, boolean startAtLargest)
+    {
+        Box.Filler tempFill = new Box.Filler(fillerSize, startAtLargest ? FILLER_MAX : fillerSize, FILLER_MAX);
+        parent.add(tempFill, location);
+    }
+
+    /**
+     * Adds a Filler (<code>Box.Filler</code>) of a flexible size to the
+     * Component given as first argument with the minimum size given in the
      * second argument at the position given in argument 3
      *
      * @param parent
@@ -60,8 +77,7 @@ public abstract class EasyGUI
      */
     public static void addFlexibleFiller(JComponent parent, Dimension fillerSize, String location)
     {
-        Box.Filler tempFill = new Box.Filler(fillerSize, fillerSize, FILLER_MAX);
-        parent.add(tempFill, location);
+        addFlexibleFiller(parent, fillerSize, location, false);
     }
 
     /**
@@ -74,7 +90,7 @@ public abstract class EasyGUI
      */
     public static void addFlexibleFiller(JComponent parent, Dimension fillerSize)
     {
-        addFlexibleFiller(parent, fillerSize, null);
+        addFlexibleFiller(parent, fillerSize, null, false);
     }
 
 }
