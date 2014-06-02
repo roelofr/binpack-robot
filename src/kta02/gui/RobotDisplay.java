@@ -5,9 +5,9 @@
  */
 package kta02.gui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -15,6 +15,7 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Date;
 import javax.swing.JPanel;
+import javax.swing.JTable;
 import kta02.warehouse.RobotMover;
 import kta02.warehouse.Warehouse;
 
@@ -29,8 +30,6 @@ public class RobotDisplay extends JPanel
     private final int COLUMN_COUNT = 5;
     private final int ROW_COUNT = 4;
 
-    private final long UPDATE_DELAY = 2000;
-
     Warehouse wh;
     RobotMover robotMover;
 
@@ -38,33 +37,68 @@ public class RobotDisplay extends JPanel
 
     public RobotDisplay(Warehouse wh)
     {
-
         this.wh = wh;
-        robotMover = wh.getRobotMover();
+        this.robotMover = wh.getRobotMover();
 
-        int drawingHeight = (ROW_COUNT + 2) * BOX_SIZE + 20;
-        int drawingWidth = (COLUMN_COUNT + 1) * BOX_SIZE + 20;
+        this.setLayout(new BorderLayout());
 
-        this.setPreferredSize(new Dimension(drawingWidth, drawingHeight));
-        this.setMinimumSize(new Dimension(drawingWidth, drawingHeight));
-        this.setMaximumSize(new Dimension(1920, drawingHeight));
-        this.setLayout(new FlowLayout());
+        PanelHeader clientHeader = new PanelHeader("Magazijnrobot status", PanelHeader.FONT_SECONDARY, PanelHeader.COLOR_SECONDARY);
+        add(clientHeader, BorderLayout.NORTH);
 
-        this.setVisible(true);
+        RobotDisplayDrawer inner = new RobotDisplayDrawer();
+        add(inner, BorderLayout.CENTER);
 
-        RobotDisplayUpdater rdu = new RobotDisplayUpdater(this);
-        new Thread(rdu).start();
+        RobotDisplayTable inner2 = new RobotDisplayTable();
+        add(inner2, BorderLayout.SOUTH);
+
+        new Thread(inner).start();
 
     }
 
-    class RobotDisplayUpdater implements Runnable
+    class RobotDisplayTable extends JPanel implements Runnable
     {
 
-        private final RobotDisplay display;
+        Thread updater;
 
-        public RobotDisplayUpdater(RobotDisplay disp)
+        JTable table;
+
+        public RobotDisplayTable()
         {
-            display = disp;
+
+            setLayout(new BorderLayout(5, 0));
+            setMinimumSize(new Dimension(4, 30 * 10 + 50));
+
+            add(new PanelHeader("Artikel overzicht", PanelHeader.FONT_SECONDARY, PanelHeader.COLOR_SECONDARY), BorderLayout.NORTH);
+
+            table = new JTable(10, 3);
+            add(table, BorderLayout.CENTER);
+
+            table.setValueAt("Artikel", 0, 0);
+            table.setValueAt("Status", 1, 0);
+            table.setValueAt("ETA", 2, 0);
+
+            updater = new Thread(this);
+            updater.start();
+        }
+
+        @Override
+        public void run()
+        {
+
+        }
+    }
+
+    class RobotDisplayDrawer extends JPanel implements Runnable
+    {
+
+        public RobotDisplayDrawer()
+        {
+            int drawingHeight = (ROW_COUNT + 2) * BOX_SIZE + 20;
+            int drawingWidth = (COLUMN_COUNT + 1) * BOX_SIZE + 20;
+
+            this.setPreferredSize(new Dimension(drawingWidth, drawingHeight));
+            this.setMinimumSize(new Dimension(drawingWidth, drawingHeight));
+            this.setMaximumSize(new Dimension(1920, drawingHeight));
         }
 
         @Override
@@ -72,9 +106,9 @@ public class RobotDisplay extends JPanel
         {
             while (!Thread.currentThread().isInterrupted())
             {
-                if (display != null)
+                if (this != null)
                 {
-                    display.repaint();
+                    this.repaint();
                 }
                 try
                 {
@@ -87,228 +121,227 @@ public class RobotDisplay extends JPanel
             }
         }
 
-    }
-
-    private synchronized boolean getObjects()
-    {
-        if (robotMover == null)
+        private synchronized boolean getObjects()
         {
-            robotMover = wh.getRobotMover();
-        }
-
-        if (robotMover == null)
-        {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public void paintComponent(Graphics g)
-    {
-        super.paintComponent(g);
-
-        g.translate(10, 10);
-
-        paintBox(new Point(-1, 0), 15, g, Color.green);
-
-        for (int x = 0; x < COLUMN_COUNT; x++)
-        {
-            for (int y = 0; y < ROW_COUNT; y++)
+            if (robotMover == null)
             {
-                paintBox(new Point(x, y), 15, g, Color.lightGray);
-            }
-        }
-
-        if (!getObjects())
-        {
-            return;
-        }
-
-        Point lastPoint = new Point(0, 0);
-
-        ArrayList<Point> fetchQueue = robotMover.getFetchQueue();
-
-        int node = 0;
-
-        int currentPos = robotMover.getCurrentIndex();
-        int robotState = robotMover.getCurrentState();
-
-        int pointX = robotMover.getCurrentPosX();
-        int pointY = robotMover.getCurrentPosY();
-
-        boolean isEndPos;
-
-        if (robotState == RobotMover.STATE_DEPOSIT)
-        {
-            pointX = -1;
-            pointY = 0;
-        }
-        if (pointX >= -1 && pointX <= COLUMN_COUNT)
-        {
-            if (pointY >= 0 && pointY <= ROW_COUNT)
-            {
-                g.setColor(new Color(255, 255, 200));
-                g.fillRect(BOX_SIZE + pointX * BOX_SIZE + 1, pointY * BOX_SIZE + 1, BOX_SIZE - 1, BOX_SIZE - 1);
-                paintBox(new Point(pointX, pointY), 15, g, pointX == -1 ? Color.green : Color.lightGray);
-            }
-        }
-
-        for (Point item : fetchQueue)
-        {
-            isEndPos = node == (fetchQueue.size() - 1);
-
-            if (isEndPos)
-            {
-                item = new Point(-1, 0);
+                robotMover = wh.getRobotMover();
             }
 
-            if (node == currentPos && robotState != RobotMover.STATE_RESET)
+            if (robotMover == null)
             {
-                double now = (new Date().getTime() % 1000.0);
-                if (isEndPos && robotState == RobotMover.STATE_RETRIEVE)
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        public void paintComponent(Graphics g)
+        {
+            super.paintComponent(g);
+
+            g.translate(10, 10);
+
+            paintBox(new Point(-1, 0), 15, g, Color.green);
+
+            for (int x = 0; x < COLUMN_COUNT; x++)
+            {
+                for (int y = 0; y < ROW_COUNT; y++)
                 {
-                    Point startPos = new Point(0, 0);
+                    paintBox(new Point(x, y), 15, g, Color.lightGray);
+                }
+            }
 
-                    Point interim = new Point(startPos.x, lastPoint.y);
+            if (!getObjects())
+            {
+                return;
+            }
 
-                    paintConnection(interim, lastPoint, g, Color.red);
-                    drawIntermediateItem(interim, lastPoint, now, g, Color.yellow);
+            Point lastPoint = new Point(0, 0);
 
-                    paintConnection(startPos, interim, g, Color.red);
-                    drawIntermediateItem(startPos, interim, now, g, Color.yellow);
+            ArrayList<Point> fetchQueue = robotMover.getFetchQueue();
 
-                    paintConnection(item, startPos, g, Color.red);
-                    drawIntermediateItem(item, startPos, now, g, Color.yellow);
+            int node = 0;
 
-                    // Paint nodes over
-                    paintItem(item, 15, g, Color.green);
-                    paintItem(lastPoint, 15, g, Color.magenta);
-                } else if (robotState == RobotMover.STATE_RETRIEVE && !isEndPos)
+            int currentPos = robotMover.getCurrentIndex();
+            int robotState = robotMover.getCurrentState();
+
+            int pointX = robotMover.getCurrentPosX();
+            int pointY = robotMover.getCurrentPosY();
+
+            boolean isEndPos;
+
+            if (robotState == RobotMover.STATE_DEPOSIT)
+            {
+                pointX = -1;
+                pointY = 0;
+            }
+            if (pointX >= -1 && pointX <= COLUMN_COUNT)
+            {
+                if (pointY >= 0 && pointY <= ROW_COUNT)
                 {
-                    Point interim = new Point(item.x, lastPoint.y);
+                    g.setColor(new Color(255, 255, 200));
+                    g.fillRect(BOX_SIZE + pointX * BOX_SIZE + 1, pointY * BOX_SIZE + 1, BOX_SIZE - 1, BOX_SIZE - 1);
+                    paintBox(new Point(pointX, pointY), 15, g, pointX == -1 ? Color.green : Color.lightGray);
+                }
+            }
 
-                    paintConnection(interim, lastPoint, g, Color.red);
-                    drawIntermediateItem(interim, lastPoint, now, g, Color.yellow);
+            for (Point item : fetchQueue)
+            {
+                isEndPos = node == (fetchQueue.size() - 1);
 
-                    paintConnection(item, interim, g, Color.red);
-                    drawIntermediateItem(item, interim, now, g, Color.yellow);
+                if (isEndPos)
+                {
+                    item = new Point(-1, 0);
+                }
 
-                    // Paint nodes over
-                    paintItem(item, 15, g, Color.red);
-                    paintItem(lastPoint, 15, g, node == 0 ? Color.lightGray : Color.magenta);
+                if (node == currentPos && robotState != RobotMover.STATE_RESET)
+                {
+                    double now = (new Date().getTime() % 1000.0);
+                    if (isEndPos && robotState == RobotMover.STATE_RETRIEVE)
+                    {
+                        Point startPos = new Point(0, 0);
 
+                        Point interim = new Point(startPos.x, lastPoint.y);
+
+                        paintConnection(interim, lastPoint, g, Color.red);
+                        drawIntermediateItem(interim, lastPoint, now, g, Color.yellow);
+
+                        paintConnection(startPos, interim, g, Color.red);
+                        drawIntermediateItem(startPos, interim, now, g, Color.yellow);
+
+                        paintConnection(item, startPos, g, Color.red);
+                        drawIntermediateItem(item, startPos, now, g, Color.yellow);
+
+                        // Paint nodes over
+                        paintItem(item, 15, g, Color.green);
+                        paintItem(lastPoint, 15, g, Color.magenta);
+                    } else if (robotState == RobotMover.STATE_RETRIEVE && !isEndPos)
+                    {
+                        Point interim = new Point(item.x, lastPoint.y);
+
+                        paintConnection(interim, lastPoint, g, Color.red);
+                        drawIntermediateItem(interim, lastPoint, now, g, Color.yellow);
+
+                        paintConnection(item, interim, g, Color.red);
+                        drawIntermediateItem(item, interim, now, g, Color.yellow);
+
+                        // Paint nodes over
+                        paintItem(item, 15, g, Color.red);
+                        paintItem(lastPoint, 15, g, node == 0 ? Color.lightGray : Color.magenta);
+
+                    } else
+                    {
+                        if (now % 600 > 300)
+                        {
+                            paintItem(item, 30, g, Color.yellow);
+                            paintItem(item, 15, g, isEndPos ? Color.green : Color.red);
+                        }
+                    }
                 } else
                 {
-                    if (now % 600 > 300)
+                    if (!isEndPos)
                     {
-                        paintItem(item, 30, g, Color.yellow);
-                        paintItem(item, 15, g, isEndPos ? Color.green : Color.red);
+                        paintItem(item, 15, g, Color.magenta);
                     }
                 }
-            } else
+                node++;
+                lastPoint = item;
+            }
+
+            if (robotState == RobotMover.STATE_RESET)
             {
-                if (!isEndPos)
+                String resetText = "Aan het resetten";
+                g.setFont(new Font("Arial", Font.BOLD, 20));
+                g.setColor(Color.blue);
+                FontMetrics f = g.getFontMetrics();
+                int size = f.stringWidth(resetText);
+
+                int now = (int) (new Date().getTime() % 1000);
+
+                if (now > 750)
                 {
-                    paintItem(item, 15, g, Color.magenta);
+                    resetText += "...";
+                } else if (now > 500)
+                {
+                    resetText += "..";
+                } else if (now > 250)
+                {
+                    resetText += ".";
                 }
+
+                g.drawString(resetText, BOX_SIZE + COLUMN_COUNT / 2 * BOX_SIZE - (size / 2), (ROW_COUNT) * BOX_SIZE + BOX_SIZE / 2);
             }
-            node++;
-            lastPoint = item;
         }
 
-        if (robotState == RobotMover.STATE_RESET)
+        public void paintBox(Point point, int r, Graphics g, Color color)
         {
-            String resetText = "Aan het resetten";
-            g.setFont(new Font("Arial", Font.BOLD, 20));
-            g.setColor(Color.blue);
-            FontMetrics f = g.getFontMetrics();
-            int size = f.stringWidth(resetText);
+            int x = point.x;
+            int y = point.y;
 
-            int now = (int) (new Date().getTime() % 1000);
-
-            if (now > 750)
-            {
-                resetText += "...";
-            } else if (now > 500)
-            {
-                resetText += "..";
-            } else if (now > 250)
-            {
-                resetText += ".";
-            }
-
-            g.drawString(resetText, BOX_SIZE + COLUMN_COUNT / 2 * BOX_SIZE - (size / 2), (ROW_COUNT) * BOX_SIZE + BOX_SIZE / 2);
+            g.setColor(Color.black);
+            g.drawRect(x * BOX_SIZE + BOX_SIZE, y * BOX_SIZE, BOX_SIZE, BOX_SIZE);
+            paintItem(point, r, g, color);
         }
-    }
 
-    public void paintBox(Point point, int r, Graphics g, Color color)
-    {
-        int x = point.x;
-        int y = point.y;
+        public void paintConnection(Point start, Point end, Graphics g, Color color)
+        {
+            int x1, x2, y1, y2;
+            x1 = start.x;
+            y1 = start.y;
+            x2 = end.x;
+            y2 = end.y;
 
-        g.setColor(Color.black);
-        g.drawRect(x * BOX_SIZE + BOX_SIZE, y * BOX_SIZE, BOX_SIZE, BOX_SIZE);
-        paintItem(point, r, g, color);
-    }
+            x1 = (x1 * BOX_SIZE) + (BOX_SIZE) + (BOX_SIZE / 2);
+            y1 = (y1 * BOX_SIZE) + (BOX_SIZE / 2);
 
-    public void paintConnection(Point start, Point end, Graphics g, Color color)
-    {
-        int x1, x2, y1, y2;
-        x1 = start.x;
-        y1 = start.y;
-        x2 = end.x;
-        y2 = end.y;
+            x2 = (x2 * BOX_SIZE) + (BOX_SIZE) + (BOX_SIZE / 2);
+            y2 = (y2 * BOX_SIZE) + (BOX_SIZE / 2);
 
-        x1 = (x1 * BOX_SIZE) + (BOX_SIZE) + (BOX_SIZE / 2);
-        y1 = (y1 * BOX_SIZE) + (BOX_SIZE / 2);
+            g.setColor(color);
+            g.drawLine(x1, y1, x2, y2);
+        }
 
-        x2 = (x2 * BOX_SIZE) + (BOX_SIZE) + (BOX_SIZE / 2);
-        y2 = (y2 * BOX_SIZE) + (BOX_SIZE / 2);
+        public void drawIntermediateItem(Point start, Point end, double mul, Graphics g, Color color)
+        {
+            double boxSize = (double) BOX_SIZE;
 
-        g.setColor(color);
-        g.drawLine(x1, y1, x2, y2);
-    }
+            int r = 11;
 
-    public void drawIntermediateItem(Point start, Point end, double mul, Graphics g, Color color)
-    {
-        double boxSize = (double) BOX_SIZE;
+            double x = start.x;
+            double y = start.y;
 
-        int r = 11;
+            double xDiff = end.x - start.x;
+            double yDiff = end.y - start.y;
 
-        double x = start.x;
-        double y = start.y;
+            mul = 1 - Math.max(Math.min(mul, 1000), 0) / 1000;
 
-        double xDiff = end.x - start.x;
-        double yDiff = end.y - start.y;
+            Point goal = new Point(
+                    (int) ((x + xDiff * mul) * boxSize + boxSize + boxSize / 2) - r / 2,
+                    (int) ((y + yDiff * mul) * boxSize + boxSize / 2) - r / 2
+            );
 
-        mul = 1 - Math.max(Math.min(mul, 1000), 0) / 1000;
+            g.setColor(color);
+            g.fillOval(goal.x, goal.y, r, r);
+        }
 
-        Point goal = new Point(
-                (int) ((x + xDiff * mul) * boxSize + boxSize + boxSize / 2) - r / 2,
-                (int) ((y + yDiff * mul) * boxSize + boxSize / 2) - r / 2
-        );
+        public void paintItem(Point p, int r, Graphics g, Color color)
+        {
+            int x = p.x;
+            int y = p.y;
 
-        g.setColor(color);
-        g.fillOval(goal.x, goal.y, r, r);
-    }
+            x += 1;
+            x *= BOX_SIZE;
+            x -= BOX_SIZE / 2;
+            x += BOX_SIZE - r / 2;
 
-    public void paintItem(Point p, int r, Graphics g, Color color)
-    {
-        int x = p.x;
-        int y = p.y;
+            y += 1;
+            y *= BOX_SIZE;
+            y -= BOX_SIZE / 2;
+            y -= r / 2;
 
-        x += 1;
-        x *= BOX_SIZE;
-        x -= BOX_SIZE / 2;
-        x += BOX_SIZE - r / 2;
-
-        y += 1;
-        y *= BOX_SIZE;
-        y -= BOX_SIZE / 2;
-        y -= r / 2;
-
-        g.setColor(color);
-        g.fillOval(x, y, r, r);
+            g.setColor(color);
+            g.fillOval(x, y, r, r);
+        }
     }
 }

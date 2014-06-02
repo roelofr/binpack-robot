@@ -54,19 +54,22 @@ public class CurrentOrder extends JPanel
 
         EasyGUI.addFiller(this, EasyGUI.FILLER_MEDIUM, BorderLayout.EAST);
         EasyGUI.addFiller(this, EasyGUI.FILLER_MEDIUM, BorderLayout.WEST);
-        EasyGUI.addFiller(this, EasyGUI.FILLER_MEDIUM, BorderLayout.NORTH);
         EasyGUI.addFiller(this, EasyGUI.FILLER_MEDIUM, BorderLayout.SOUTH);
+
+        PanelHeader clientHeader = new PanelHeader("Klant", PanelHeader.FONT_SECONDARY, PanelHeader.COLOR_SECONDARY);
+        add(clientHeader, BorderLayout.NORTH);
 
         JPanel inner = new JPanel();
         inner.setOpaque(false);
         inner.setLayout(new BoxLayout(inner, BoxLayout.Y_AXIS));
         add(inner, BorderLayout.CENTER);
 
-        PanelHeader clientHeader = new PanelHeader("Klant", PanelHeader.FONT_SECONDARY, PanelHeader.COLOR_SECONDARY);
-        inner.add(clientHeader);
+        EasyGUI.addFiller(inner, EasyGUI.FILLER_MEDIUM);
 
         orderClient = new CurrentOrderClient(warehouse.getKlant());
         inner.add(orderClient);
+
+        EasyGUI.addFlexibleFiller(inner, EasyGUI.FILLER_LARGE, null, true);
 
     }
 
@@ -80,10 +83,43 @@ public class CurrentOrder extends JPanel
         JLabel customerZip;
         JLabel customerCity;
 
+        GridBagConstraints gbc;
+
         public CurrentOrderClient(Klant customer)
         {
             createElements();
             setCustomer(customer);
+        }
+
+        private GridBagConstraints getBagConstraints()
+        {
+            if (gbc == null)
+            {
+                gbc = new GridBagConstraints();
+            }
+            return gbc;
+        }
+
+        private JLabel addLabel(String text, int x, int y, int w, int h, double hw)
+        {
+            JLabel tmp = new JLabel(text);
+
+            GridBagConstraints c = getBagConstraints();
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = x;
+            c.gridy = y;
+            c.gridwidth = w;
+            c.gridheight = h;
+            c.weightx = hw;
+
+            add(tmp, c);
+
+            return tmp;
+        }
+
+        private JLabel addLabel(String text, int x, int y, int w, int h)
+        {
+            return addLabel(text, x, y, w, h, 0.1);
         }
 
         private void createElements()
@@ -91,39 +127,19 @@ public class CurrentOrder extends JPanel
             setLayout(new GridBagLayout());
 
             // From http://docs.oracle.com/javase/tutorial/uiswing/layout/gridbag.html
-            GridBagConstraints c = new GridBagConstraints();
+            GridBagConstraints c = getBagConstraints();
 
-            customerName = new JLabel();
-            c.fill = GridBagConstraints.HORIZONTAL;
-            c.gridx = 0;
-            c.gridy = 0;
-            c.gridwidth = 2;
-            c.gridheight = 1;
-            c.weightx = 0.0;
-            add(customerName, c);
+            addLabel("Naam: ", 0, 0, 1, 1);
+            customerName = addLabel("", 1, 0, 1, 1, 1);
 
-            customerAddress = new JLabel();
-            c.fill = GridBagConstraints.HORIZONTAL;
-            c.gridx = 0;
-            c.gridy = 1;
-            c.gridwidth = 2;
-            c.gridheight = 1;
-            c.weightx = 0.0;
-            add(customerAddress, c);
+            addLabel("Adres: ", 0, 1, 1, 1);
+            customerAddress = addLabel("", 1, 1, 1, 1, 1);
 
-            customerZip = new JLabel();
-            c.fill = GridBagConstraints.HORIZONTAL;
-            c.gridx = 0;
-            c.gridy = 2;
-            c.gridwidth = 1;
-            c.gridheight = 1;
-            c.weightx = 0.5;
-            add(customerZip, c);
+            addLabel("Postcode: ", 0, 2, 1, 1);
+            customerZip = addLabel("", 1, 2, 1, 1, 1);
 
-            customerCity = new JLabel();
-            c.gridx = 1;
-            c.gridy = 2;
-            add(customerCity, c);
+            addLabel("Plaats: ", 0, 3, 1, 1);
+            customerCity = addLabel("", 1, 3, 1, 1, 1);
 
         }
 

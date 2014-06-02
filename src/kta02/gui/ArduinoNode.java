@@ -9,7 +9,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -51,10 +50,21 @@ public class ArduinoNode extends JPanel implements Runnable, MouseListener
         this.wh = wh;
         isSelected = false;
 
+        setLayout(new BorderLayout());
+        setOpaque(false);
+
+        EasyGUI.addFiller(this, EasyGUI.FILLER_MEDIUM, BorderLayout.NORTH);
+        EasyGUI.addFiller(this, EasyGUI.FILLER_MEDIUM, BorderLayout.EAST);
+        EasyGUI.addFiller(this, EasyGUI.FILLER_MEDIUM, BorderLayout.SOUTH);
+        EasyGUI.addFiller(this, EasyGUI.FILLER_MEDIUM, BorderLayout.WEST);
+
+        JPanel inner = new JPanel();
+        inner.setBackground(PanelHeader.COLOR_PRIMARY);
+
         setLayout(new BorderLayout(5, 0));
 
-        EasyGUI.addFiller(this, EasyGUI.FILLER_SMALL, BorderLayout.NORTH);
-        EasyGUI.addFiller(this, EasyGUI.FILLER_SMALL, BorderLayout.SOUTH);
+        EasyGUI.addFiller(inner, EasyGUI.FILLER_SMALL, BorderLayout.NORTH);
+        EasyGUI.addFiller(inner, EasyGUI.FILLER_SMALL, BorderLayout.SOUTH);
 
         try
         {
@@ -67,15 +77,13 @@ public class ArduinoNode extends JPanel implements Runnable, MouseListener
             EasyGUI.addFiller(pnl, EasyGUI.FILLER_SMALL, BorderLayout.EAST);
 
             pnl.add(image, BorderLayout.CENTER);
-            add(pnl, BorderLayout.WEST);
+            inner.add(pnl, BorderLayout.WEST);
 
             image.setMinimumSize(new Dimension(64, 64));
         } catch (NullPointerException e)
         {
             System.err.println(e.getMessage());
         }
-
-        setBackground(new Color(150, 210, 255));
 
         int panelSize = 64 + (int) (EasyGUI.FILLER_SMALL.getHeight() * 2);
 
@@ -85,7 +93,7 @@ public class ArduinoNode extends JPanel implements Runnable, MouseListener
 
         JPanel textFrame = new JPanel(new BorderLayout());
         textFrame.setOpaque(false);
-        add(textFrame, BorderLayout.CENTER);
+        inner.add(textFrame, BorderLayout.CENTER);
 
         header = new JLabel();
         header.setFont(new Font("Arial", Font.PLAIN, 24));
@@ -129,25 +137,6 @@ public class ArduinoNode extends JPanel implements Runnable, MouseListener
     public void setActive(Boolean active)
     {
         isSelected = active;
-    }
-
-    /**
-     * Override the paint method, so we can draw our circles and squares
-     *
-     * @param g
-     */
-    @Override
-    public void paintComponent(Graphics g)
-    {
-
-        super.paintComponent(g);
-
-        if (isSelected)
-        {
-            g.setColor(new Color(255, 255, 255, 100));
-            g.drawRect(0, 0, (int) getPreferredSize().getWidth(), (int) getPreferredSize().getHeight());
-        }
-
     }
 
     @Override
