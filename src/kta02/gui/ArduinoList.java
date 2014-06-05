@@ -43,9 +43,11 @@ public final class ArduinoList extends JPanel implements ActionListener
 
         arduinoPanel = new JPanel();
         arduinoPanel.setLayout(new BoxLayout(arduinoPanel, BoxLayout.Y_AXIS));
+        arduinoPanel.setOpaque(false);
 
         resetButton = new JButton("Refresh");
-        resetButton.setMinimumSize(new Dimension(10, 60));
+        resetButton.setMinimumSize(new Dimension(10, 100));
+        resetButton.setPreferredSize(new Dimension(10, 100));
         resetButton.addActionListener(this);
         resetButton.setEnabled(false);
 
@@ -78,7 +80,6 @@ public final class ArduinoList extends JPanel implements ActionListener
             arNodes.clear();
         }
         arduinoPanel.removeAll();
-        arduinoPanel.revalidate();
 
         if (arduinoList == null || arduinoList.isEmpty())
         {
@@ -103,7 +104,6 @@ public final class ArduinoList extends JPanel implements ActionListener
             }
         }
         arduinoPanel.revalidate();
-        revalidate();
         resetButton.setEnabled(true);
     }
 

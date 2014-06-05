@@ -59,6 +59,8 @@ public class MainGUI extends JFrame
         setBounds(new Rectangle(screenPos, frameSize));
         setExtendedState(Frame.MAXIMIZED_BOTH);
 
+        setBackground(Color.WHITE);
+
         JPanel screenHeader = new JPanel(new BorderLayout());
         EasyGUI.addFiller(screenHeader, EasyGUI.FILLER_MEDIUM, BorderLayout.WEST);
         EasyGUI.addFiller(screenHeader, EasyGUI.FILLER_SMALL, BorderLayout.NORTH);
@@ -72,9 +74,11 @@ public class MainGUI extends JFrame
         screenHeader.add(header, BorderLayout.CENTER);
 
         screenContent = new JPanel(new BorderLayout());
+        screenContent.setBackground(Color.white);
         add(screenContent, BorderLayout.CENTER);
 
         connectedDevices = new ArduinoList(wh);
+        connectedDevices.setBackground(Color.white);
         add(connectedDevices, BorderLayout.WEST);
 
         toggleInterface(false, true);

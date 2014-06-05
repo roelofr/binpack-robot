@@ -5,9 +5,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import kta02.domein.Artikel;
-import kta02.domein.Bestelling;
-import kta02.domein.PackageLocation;
 import kta02.warehouse.Warehouse;
 
 /**
@@ -70,6 +67,17 @@ public final class XMLPicker extends JFileChooser
         showOpenDialog(mainGUI);
     }
 
+    private void sleep(long time)
+    {
+        try
+        {
+            Thread.currentThread().sleep(time);
+        } catch (InterruptedException e)
+        {
+
+        }
+    }
+
     class PickerListener implements ActionListener
     {
 
@@ -83,6 +91,7 @@ public final class XMLPicker extends JFileChooser
                 {
                     return;
                 }
+
                 String extension = "";
                 int i = currentFile.getName().lastIndexOf('.');
                 if (i > 0)
@@ -93,7 +102,12 @@ public final class XMLPicker extends JFileChooser
                 {
                     return;
                 }
+
+                LoadingDialog ld = new LoadingDialog("Bestelling verwerken...");
+                sleep(200);
                 warehouse.setXMLFile(currentFile);
+                sleep(100);
+                ld.dispose();
             }
         }
 

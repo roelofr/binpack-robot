@@ -188,10 +188,10 @@ public class RobotMover extends RobotConfig
         {
             return;
         }
-        
+
         fetchQueue.clear();
         fetchQueue.addAll(list);
-        
+
         binQueue.clear();
         binQueue.addAll(bins);
 
@@ -253,14 +253,14 @@ public class RobotMover extends RobotConfig
 
             if (moveOffset.y < 0)
             {
-                duration += Math.round(MOVE_Y_SYNC * MOVE_Y_UP + 1000) * (moveOffset.y * -1);
+                duration += Math.round(MOVE_Y_SYNC * (1 + this.numberOfPackets * 0.07f) * MOVE_Y_UP + 1000) * (moveOffset.y * -1);
             } else if (moveOffset.y > 0)
             {
-                duration += Math.round(MOVE_Y_SYNC * MOVE_Y_DOWN + 1000) * moveOffset.y;
+                duration += Math.round(MOVE_Y_SYNC * (1 + this.numberOfPackets * 0.07f) * MOVE_Y_DOWN + 1000) * moveOffset.y;
             }
-            duration /= 1000;
+            duration += ITEM_PICKUP_DURATION * 0.5;
             fetchTimeLinks.add(new PointTimeLink(point, duration, duration));
-            start += duration + ITEM_PICKUP_DURATION;
+            start += duration + ITEM_PICKUP_DURATION * 0.6;
 
         }
 
@@ -502,23 +502,27 @@ public class RobotMover extends RobotConfig
         moveMotor('y', 0);
 
     }
-    
-    private synchronized void dropInBins(){
+
+    private synchronized void dropInBins()
+    {
         moveMotor('z', -3);
         sleep(550);
         moveMotor('z', 0);
         sleep(500);
-            
-        for(Integer bin : this.binQueue){
-            if(bin == 0){
+
+        for (Integer bin : this.binQueue)
+        {
+            if (bin == 0)
+            {
                 moveMotor('b', -3);
-            } else if(bin == 1){
+            } else if (bin == 1)
+            {
                 moveMotor('b', 3);
             }
             sleep(1500);
             moveMotor('b', 0);
             sleep(500);
-            
+
             moveMotor('z', -3);
             sleep(120);
             moveMotor('z', 0);
@@ -538,7 +542,7 @@ public class RobotMover extends RobotConfig
         sleep(2500);
         moveMotor('z', 0);
         sleep(500);
-        
+
         // reset y and bins
         moveMotor('y', 3);
         moveMotor('b', -3);
@@ -552,8 +556,7 @@ public class RobotMover extends RobotConfig
         sleep(4000);
         moveMotor('x', 0);
         sleep(500);
-        
-        
+
         // move to 0,0
         moveMotor('x', 2);
         sleep(Math.round(MOVE_X_SYNC * 1100));
@@ -583,7 +586,7 @@ public class RobotMover extends RobotConfig
         this.calculateArrivalTime();
 
         this.numberOfPackets = 0;
-        
+
         // always go back to zero
         this.fetchQueue.add(new Point(0, 0));
 
@@ -627,7 +630,7 @@ public class RobotMover extends RobotConfig
             }
             this.currentIndex++;
         }
-        
+
         // drop all the retrieved packages in the bins
         this.dropInBins();
 

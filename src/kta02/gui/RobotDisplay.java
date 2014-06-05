@@ -43,14 +43,17 @@ public class RobotDisplay extends JPanel
         this.robotMover = wh.getRobotMover();
 
         this.setLayout(new BorderLayout());
+        this.setBackground(Color.white);
 
         PanelHeader clientHeader = new PanelHeader("Magazijnrobot status", PanelHeader.FONT_SECONDARY, PanelHeader.COLOR_SECONDARY);
         add(clientHeader, BorderLayout.NORTH);
 
         RobotDisplayDrawer inner = new RobotDisplayDrawer();
+        inner.setBackground(Color.white);
         add(inner, BorderLayout.CENTER);
 
         RobotDisplayTable inner2 = new RobotDisplayTable();
+        inner2.setBackground(Color.white);
         add(inner2, BorderLayout.SOUTH);
 
         new Thread(inner).start();
@@ -85,6 +88,7 @@ public class RobotDisplay extends JPanel
             add(new PanelHeader("Artikel overzicht", PanelHeader.FONT_SECONDARY, PanelHeader.COLOR_SECONDARY), BorderLayout.NORTH);
 
             JPanel stuphContainer = new JPanel(new BorderLayout());
+            stuphContainer.setBackground(Color.white);
             add(stuphContainer, BorderLayout.CENTER);
 
             EasyGUI.addFiller(stuphContainer, EasyGUI.FILLER_LARGE, BorderLayout.NORTH);
@@ -183,6 +187,8 @@ public class RobotDisplay extends JPanel
                     int i = 1;
                     long duration = 0;
                     int state = wh.getRobotMover().getCurrentState();
+                    int currentIndex = wh.getRobotMover().getCurrentIndex() + 1;
+
                     for (PointTimeLink timeLink : times)
                     {
                         if (state == RobotMover.STATE_IDLE || state == RobotMover.STATE_RESET)
@@ -190,9 +196,15 @@ public class RobotDisplay extends JPanel
                             duration += timeLink.getTravelTime();
                         } else
                         {
-                            duration = timeLink.getArrivalTime() - (new Date().getTime() / 1000);
+                            if (currentIndex > i || (currentIndex == i && state == RobotMover.STATE_PICKUP))
+                            {
+                                duration = 0;
+                            } else
+                            {
+                                duration = timeLink.getArrivalTime() - new Date().getTime();
+                            }
                         }
-                        table.setValueAt(durationToMinSec(Math.max(0, duration)), i, 2);
+                        table.setValueAt(durationToMinSec(Math.max(0, duration / 1000)), i, 2);
                         if (table.getValueAt(i, 0) == "")
                         {
                             fetchReturn = CALC_UPDATE;
@@ -203,13 +215,14 @@ public class RobotDisplay extends JPanel
                 if (fetchReturn == CALC_UPDATE)
                 {
                     Artikel art;
-                    int row = 1;
+                    int row = 0;
                     for (PointTimeLink timeLink : times)
                     {
+                        row++;
                         art = null;
                         for (Artikel artikel : artikelen)
                         {
-                            if (artikel.getLocatie() == timeLink.getPoint())
+                            if (timeLink.getPoint().equals(artikel.getLocatie()))
                             {
                                 art = artikel;
                                 break;
@@ -217,6 +230,8 @@ public class RobotDisplay extends JPanel
                         }
                         if (art == null)
                         {
+                            table.setValueAt(row + ".intl", row, 0);
+                            table.setValueAt(art.getBeschrijving() + "", row, 1);
                             continue;
                         }
 
@@ -227,7 +242,7 @@ public class RobotDisplay extends JPanel
 
                 try
                 {
-                    Thread.currentThread().sleep(800);
+                    Thread.currentThread().sleep(500);
                 } catch (InterruptedException e)
                 {
                     // Meh
