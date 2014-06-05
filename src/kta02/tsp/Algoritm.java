@@ -78,18 +78,25 @@ public class Algoritm {
         float distance1;
         float distance2;
         for (int i = 0; i < route.size() - 3; i++) {
+            
+            //* Calculate distance through the points
             distance1 = calculateDistanceBetweenItems(article.get(route.get(i)).getLocatie().x, article.get(route.get(i)).getLocatie().y, article.get(route.get(i + 1)).getLocatie().x, article.get(route.get(i + 1)).getLocatie().y)
                     + calculateDistanceBetweenItems(article.get(route.get(i + 1)).getLocatie().x, article.get(route.get(i + 1)).getLocatie().y, article.get(route.get(i + 2)).getLocatie().x, article.get(route.get(i + 2)).getLocatie().y)
                     + calculateDistanceBetweenItems(article.get(route.get(i + 2)).getLocatie().x, article.get(route.get(i + 2)).getLocatie().y, article.get(route.get(i + 3)).getLocatie().x, article.get(route.get(i + 3)).getLocatie().y);
-
+            
+            //* Calculate distance through the points ## WHILE swapped
             distance2 = calculateDistanceBetweenItems(article.get(route.get(i)).getLocatie().x, article.get(route.get(i)).getLocatie().y, article.get(route.get(i + 2)).getLocatie().x, article.get(route.get(i + 2)).getLocatie().y)
                     + calculateDistanceBetweenItems(article.get(route.get(i + 1)).getLocatie().x, article.get(route.get(i + 1)).getLocatie().y, article.get(route.get(i + 2)).getLocatie().x, article.get(route.get(i + 2)).getLocatie().y)
                     + calculateDistanceBetweenItems(article.get(route.get(i + 1)).getLocatie().x, article.get(route.get(i + 1)).getLocatie().y, article.get(route.get(i + 3)).getLocatie().x, article.get(route.get(i + 3)).getLocatie().y);
+            
+            //* If distance is shorter. Swap points.. 
             if (distance2 < distance1) {
                 //* Swap the to indexxes
                 swapValue = route.get(i + 1);
                 route.set(i + 1, route.get(i + 2));
                 route.set(i + 2, swapValue);
+                
+                //* If there was improvement, also repeat this process.
                 route = swapPoints(route, article);
                 return route;
             }
