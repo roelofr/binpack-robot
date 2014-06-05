@@ -502,18 +502,21 @@ public class RobotMover extends RobotConfig
         moveMotor('y', 0);
 
     }
+    
 
-    private synchronized void dropInBins()
-    {
+    /**
+     * Drops all the packages in their bins
+     */
+    private synchronized void dropInBins(){
         moveMotor('z', -3);
         sleep(550);
         moveMotor('z', 0);
         sleep(500);
-
-        for (Integer bin : this.binQueue)
-        {
-            if (bin == 0)
-            {
+        
+        //loop trough all the bins to drop in
+        for(Integer bin : this.binQueue){
+            // check in what bin it needs to be dropped
+            if(bin == 0){
                 moveMotor('b', -3);
             } else if (bin == 1)
             {
@@ -522,7 +525,8 @@ public class RobotMover extends RobotConfig
             sleep(1500);
             moveMotor('b', 0);
             sleep(500);
-
+            
+            // move the arm to drop one package
             moveMotor('z', -3);
             sleep(120);
             moveMotor('z', 0);
