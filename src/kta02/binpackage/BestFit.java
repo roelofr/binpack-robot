@@ -16,11 +16,17 @@ import kta02.domein.Bestelling;
  */
 public class BestFit {
     
-    public static ArrayList<ArrayList<Integer>> BestFit(Bestelling bestelling, ArrayList<Integer> route1){
+    public static ArrayList<ArrayList<Integer>> BestFit(Bestelling bestelling, ArrayList<Integer> currentRoute){
+        
+        //* Declare the weight of the bins. And the bins
         ArrayList<Integer> sizes = new ArrayList<>();
         ArrayList<ArrayList<Integer>> bins = new ArrayList<>();
-        ArrayList<Integer> route = new ArrayList<>(route1);
+        
+        //* Initialize the route and reverse it in order of the TSP Robot
+        ArrayList<Integer> route = new ArrayList<>(currentRoute);
         Collections.reverse(route);
+        
+        //* The best bin to put the Package in
         int bestBin;
         
         //* Start with two bins and one binsize
