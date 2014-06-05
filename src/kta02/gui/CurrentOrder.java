@@ -6,6 +6,7 @@
 package kta02.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.BoxLayout;
@@ -50,7 +51,7 @@ public class CurrentOrder extends JPanel
         wh = warehouse;
 
         setLayout(new BorderLayout());
-        setOpaque(false);
+        setBackground(Color.white);
 
         EasyGUI.addFiller(this, EasyGUI.FILLER_MEDIUM, BorderLayout.EAST);
         EasyGUI.addFiller(this, EasyGUI.FILLER_MEDIUM, BorderLayout.WEST);
@@ -60,7 +61,7 @@ public class CurrentOrder extends JPanel
         add(clientHeader, BorderLayout.NORTH);
 
         JPanel inner = new JPanel();
-        inner.setOpaque(false);
+        inner.setBackground(Color.white);
         inner.setLayout(new BoxLayout(inner, BoxLayout.Y_AXIS));
         add(inner, BorderLayout.CENTER);
 
@@ -124,6 +125,7 @@ public class CurrentOrder extends JPanel
 
         private void createElements()
         {
+            setBackground(Color.white);
             setLayout(new GridBagLayout());
 
             // From http://docs.oracle.com/javase/tutorial/uiswing/layout/gridbag.html

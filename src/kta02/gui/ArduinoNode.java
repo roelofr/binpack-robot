@@ -50,18 +50,19 @@ public class ArduinoNode extends JPanel implements Runnable, MouseListener
         this.wh = wh;
         isSelected = false;
 
-        setLayout(new BorderLayout());
-        setOpaque(false);
+        this.setLayout(new BorderLayout());
+        this.setBackground(Color.white);
 
-        EasyGUI.addFiller(this, EasyGUI.FILLER_MEDIUM, BorderLayout.NORTH);
-        EasyGUI.addFiller(this, EasyGUI.FILLER_MEDIUM, BorderLayout.EAST);
-        EasyGUI.addFiller(this, EasyGUI.FILLER_MEDIUM, BorderLayout.SOUTH);
-        EasyGUI.addFiller(this, EasyGUI.FILLER_MEDIUM, BorderLayout.WEST);
+        EasyGUI.addFiller(this, EasyGUI.FILLER_SMALL, BorderLayout.NORTH);
+        EasyGUI.addFiller(this, EasyGUI.FILLER_SMALL, BorderLayout.EAST);
+        EasyGUI.addFiller(this, EasyGUI.FILLER_SMALL, BorderLayout.SOUTH);
+        EasyGUI.addFiller(this, EasyGUI.FILLER_SMALL, BorderLayout.WEST);
 
         JPanel inner = new JPanel();
         inner.setBackground(PanelHeader.COLOR_PRIMARY);
+        this.add(inner, BorderLayout.CENTER);
 
-        setLayout(new BorderLayout(5, 0));
+        inner.setLayout(new BorderLayout(5, 0));
 
         EasyGUI.addFiller(inner, EasyGUI.FILLER_SMALL, BorderLayout.NORTH);
         EasyGUI.addFiller(inner, EasyGUI.FILLER_SMALL, BorderLayout.SOUTH);
@@ -85,11 +86,17 @@ public class ArduinoNode extends JPanel implements Runnable, MouseListener
             System.err.println(e.getMessage());
         }
 
-        int panelSize = 64 + (int) (EasyGUI.FILLER_SMALL.getHeight() * 2);
+        int bufferSize = (int) EasyGUI.FILLER_SMALL.getWidth();
 
-        setPreferredSize(new Dimension(300, panelSize));
-        setMinimumSize(new Dimension(300, panelSize));
-        setMaximumSize(new Dimension(300, panelSize));
+        int panelSize = 64 + bufferSize * 2;
+
+        setPreferredSize(new Dimension(300 + bufferSize * 2, panelSize + bufferSize * 2));
+        setMinimumSize(new Dimension(300 + bufferSize * 2, panelSize + bufferSize * 2));
+        setMaximumSize(new Dimension(300 + bufferSize * 2, panelSize + bufferSize * 2));
+
+        inner.setPreferredSize(new Dimension(300, panelSize));
+        inner.setMinimumSize(new Dimension(300, panelSize));
+        inner.setMaximumSize(new Dimension(300, panelSize));
 
         JPanel textFrame = new JPanel(new BorderLayout());
         textFrame.setOpaque(false);

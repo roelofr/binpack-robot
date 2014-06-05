@@ -44,13 +44,16 @@ public class CurrentStatusPanel extends JPanel
 
         JPanel twoColumn = new JPanel(new GridLayout(1, 2));
         add(twoColumn, BorderLayout.CENTER);
+        twoColumn.setBackground(Color.white);
 
         order = new CurrentOrder(warehouse);
+        order.setBackground(Color.white);
         twoColumn.add(order);
 
         products = new ArrayList<>();
 
         status = new RobotDisplay(warehouse);
+        status.setBackground(Color.white);
         twoColumn.add(status);
     }
 

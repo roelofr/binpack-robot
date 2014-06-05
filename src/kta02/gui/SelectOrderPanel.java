@@ -31,13 +31,15 @@ public class SelectOrderPanel extends JPanel
     {
         this.wh = wh;
 
-        setLayout(new BorderLayout());
+        this.setLayout(new BorderLayout());
+        this.setBackground(Color.white);
 
         PanelHeader panelHeader = new PanelHeader("Huidige bestelling", new Font("Arial", Font.BOLD, 16), new Color(200, 240, 255));
 
         JPanel contentPanel = new JPanel();
 
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBackground(Color.white);
 
         JLabel pleaseSelectLabel = new JLabel("Geen bestelling geselecteerd.");
         pleaseSelectLabel.setHorizontalAlignment(SwingConstants.CENTER);
