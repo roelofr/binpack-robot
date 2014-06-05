@@ -11,14 +11,17 @@ import java.util.ArrayList;
 public class Algoritm {
 
     public static ArrayList<Integer> tourImprovement(ArrayList<Artikel> article, int robotX, int robotY) {
+        
+        //* Declare route consist indexxes from Article
         ArrayList<Integer> route = new ArrayList<>();
 
+        //* Add indexxes to orgRoute
         ArrayList<Integer> orgRoute = new ArrayList<>();
         for (int i = 0; i < article.size(); i++) {
             orgRoute.add(i);
-            
         }
 
+        //* Caculating variables
         int bestShotItem;
         float bestShotDistance;
         float distance;
@@ -37,7 +40,7 @@ public class Algoritm {
         route.add(orgRoute.get(bestShotItem));
         orgRoute.remove(bestShotItem);
 
-        //Calculate Rest for Robot1
+        //Calculate Rest for Robot
         int routeSize = orgRoute.size();
         for (int i = 0; i < routeSize; i++) {
             bestShotItem = 0;
@@ -69,18 +72,21 @@ public class Algoritm {
         return distance;
     }
     public static ArrayList<Integer> swapPoints(ArrayList<Integer> route, ArrayList<Artikel> article) {
+        
+        //* Calculation variables
         int swapValue;
-        float distance;
+        float distance1;
         float distance2;
         for (int i = 0; i < route.size() - 3; i++) {
-            distance = calculateDistanceBetweenItems(article.get(route.get(i)).getLocatie().x, article.get(route.get(i)).getLocatie().y, article.get(route.get(i + 1)).getLocatie().x, article.get(route.get(i + 1)).getLocatie().y)
+            distance1 = calculateDistanceBetweenItems(article.get(route.get(i)).getLocatie().x, article.get(route.get(i)).getLocatie().y, article.get(route.get(i + 1)).getLocatie().x, article.get(route.get(i + 1)).getLocatie().y)
                     + calculateDistanceBetweenItems(article.get(route.get(i + 1)).getLocatie().x, article.get(route.get(i + 1)).getLocatie().y, article.get(route.get(i + 2)).getLocatie().x, article.get(route.get(i + 2)).getLocatie().y)
                     + calculateDistanceBetweenItems(article.get(route.get(i + 2)).getLocatie().x, article.get(route.get(i + 2)).getLocatie().y, article.get(route.get(i + 3)).getLocatie().x, article.get(route.get(i + 3)).getLocatie().y);
 
             distance2 = calculateDistanceBetweenItems(article.get(route.get(i)).getLocatie().x, article.get(route.get(i)).getLocatie().y, article.get(route.get(i + 2)).getLocatie().x, article.get(route.get(i + 2)).getLocatie().y)
                     + calculateDistanceBetweenItems(article.get(route.get(i + 1)).getLocatie().x, article.get(route.get(i + 1)).getLocatie().y, article.get(route.get(i + 2)).getLocatie().x, article.get(route.get(i + 2)).getLocatie().y)
                     + calculateDistanceBetweenItems(article.get(route.get(i + 1)).getLocatie().x, article.get(route.get(i + 1)).getLocatie().y, article.get(route.get(i + 3)).getLocatie().x, article.get(route.get(i + 3)).getLocatie().y);
-            if (distance > distance2) {
+            if (distance2 < distance1) {
+                //* Swap the to indexxes
                 swapValue = route.get(i + 1);
                 route.set(i + 1, route.get(i + 2));
                 route.set(i + 2, swapValue);
@@ -89,10 +95,6 @@ public class Algoritm {
             }
         }
         
-        /*for(int i = 0; i < route.size(); i ++){
-            System.out.println("********");
-            System.out.println(article.get(route.get(i)).getLocatie().x + ", " + article.get(route.get(i)).getLocatie().y);
-        }*/
         return route;
     }
 
